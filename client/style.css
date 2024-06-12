@@ -1,0 +1,107 @@
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.content {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 300px;
+    background-color: #f0f0f0;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+.graph-container {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+}
+
+.graph {
+    flex: 1;
+    margin: 10px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+}
+
+.terminal {
+    height: 150px;
+    background-color: #000;
+    color: #fff;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+#command-list {
+    list-style-type: none;
+    padding: 0;
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+#command-list li {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    margin-bottom: 10px;
+}
+
+#ai-dialog {
+    margin-bottom: 20px;
+}
+
+.button {
+    background-color: #3b93f8;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+#ai-input, #command-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-top: auto;
+}
+
+.box label {
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.box ul {
+    margin-top: 10px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+#git-init {
+    background-color: grey;
+    cursor: not-allowed;
+}

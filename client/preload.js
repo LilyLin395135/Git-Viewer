@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron');
 
 // 使用 contextBridge 將將安全的 API 給 render process
 contextBridge.exposeInMainWorld('electron', {
