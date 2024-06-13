@@ -101,7 +101,7 @@ body {
     overflow-y: auto;
 }
 
-#git-init {
-    background-color: grey;
+.button:disabled {
+    background-color: #bbb;
     cursor: not-allowed;
 }

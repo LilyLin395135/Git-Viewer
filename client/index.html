@@ -3,7 +3,7 @@
 
 <head>
     <title>Git Viewer</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="render.js" defer></script>
 </head>
@@ -13,7 +13,7 @@
         <div class="sidebar">
             <div style="display: flex; justify-content: space-between;">
                 <button id="open-folder" class="button">Open Folder</button>
-                <button id="git-init" class="button" disabled>git init</button>
+                <button id="git-init" class="button">git init</button>
             </div>
             <div id="ai-dialog" class="box">
                 <label for="ai-input">AI</label>

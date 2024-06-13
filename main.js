@@ -1,6 +1,8 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import axios from 'axios';
+import { checkIsGitManage } from './client/utils/checkIsGitManage.js';
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -9,9 +11,8 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(appDirectory, 'client', 'preload.js'),
-      contextIsolation: true, // 啟用上下文隔離，確保 preload 腳本中的變數不會污染全局命名空間。
-      nodeIntegration: false // 禁用 Node.js API，防止不受信任的內容在渲染進程中執行任意 Node.js 代碼。
+      nodeIntegration: true, // 允許在渲染進程中使用 Node.js
+      contextIsolation: false// 允許渲染器訪問 Node.js 環境
     }
   });
   mainWindow.loadFile(path.join(appDirectory, 'client', 'index.html'));
@@ -30,6 +31,31 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
     return { folderPath, gitExists }; // 這將作為 IPC response 給 render process
   }
   return null;
+});
+
+ipcMain.handle('init-git', async (event, folderPath) => {
+  const parentGitFolder = checkIsGitManage(path.dirname(folderPath));
+  if (parentGitFolder) {
+    const result = await dialog.showMessageBox({
+      type: 'question',
+      buttons: ['Yes', 'No'],
+      defaultId: 1,
+      title: 'Confirm',
+      message: `The parent folder ${parentGitFolder} is already a git repository. Do you still want to run git init?`
+    });
+
+    if (result.response === 1) {
+      return{status:'cancelled'};
+    }
+  }
+
+  try {
+    const response = await axios.post('http://localhost:3000/api/init', { folderPath });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+    throw new Error(errorMessage);
+  }
 });
 
 app.whenReady().then(createWindow);

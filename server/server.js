@@ -1,15 +1,20 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import gitRouter from './routes/git.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
+app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`Sever is running on port ${port}`);
-});
+app.use('/api', gitRouter);
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Sever is running on port ${port}`);
+  });
+}
+
+export default app;
