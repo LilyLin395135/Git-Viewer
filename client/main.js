@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
-import { checkIsGitManage } from './client/utils/checkIsGitManage.js';
+import { checkIsGitManage } from './utils/checkIsGitManage.js';
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -15,7 +15,7 @@ function createWindow() {
       contextIsolation: false// 允許渲染器訪問 Node.js 環境
     }
   });
-  mainWindow.loadFile(path.join(appDirectory, 'client', 'index.html'));
+  mainWindow.loadFile(path.join(appDirectory, 'index.html'));
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求
