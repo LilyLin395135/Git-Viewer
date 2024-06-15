@@ -30,13 +30,19 @@ body {
     display: flex;
     flex-direction: row;
     flex: 1;
+    justify-content: space-between;
+    height: 100%;
 }
 
 .graph {
     flex: 1;
     margin: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: start; /* 讓graph容器從頂部開始排列，滾輪捲動可以滾到最上面 */
     background-color: #ffffff;
     border: 1px solid #ddd;
+    overflow-y: auto; /* 允許垂直滾動 */
 }
 
 .terminal {
@@ -45,7 +51,8 @@ body {
     color: #fff;
     padding: 10px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow-y: auto;/* 允許垂直滾動 */
+    resize: vertical; /* 允許垂直方向調整大小 */
 }
 
 #command-list {
@@ -83,7 +90,8 @@ body {
     align-self: flex-end;
 }
 
-#ai-input, #command-input {
+#ai-input,
+#command-input {
     width: 100%;
     box-sizing: border-box;
     padding: 5px;
@@ -105,3 +113,8 @@ body {
     background-color: #bbb;
     cursor: not-allowed;
 }
+
+#formal-graph {
+    height: calc(100vh - 150px); /* 100vh 减去 terminal 的高度和一些額外的空間 */
+    overflow-y: auto; /* 允許垂直滾動 */
+  }

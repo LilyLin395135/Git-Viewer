@@ -11,11 +11,12 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      nodeIntegration: true, // 允許在渲染進程中使用 Node.js
-      contextIsolation: false// 允許渲染器訪問 Node.js 環境
+      preload: path.join(appDirectory, 'dist/preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false
     }
   });
-  mainWindow.loadFile(path.join(appDirectory, 'index.html'));
+  mainWindow.loadFile(path.join(appDirectory, 'dist/index.html'));
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求
@@ -45,16 +46,25 @@ ipcMain.handle('init-git', async (event, folderPath) => {
     });
 
     if (result.response === 1) {
-      return{status:'cancelled'};
+      return { status: 'cancelled' };
     }
   }
 
   try {
-    const response = await axios.post('http://localhost:3000/api/init', { folderPath });
+    const response = await axios.post('http://localhost:3000/api/git/init', { folderPath });
     return response.data;
   } catch (error) {
     const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
     throw new Error(errorMessage);
+  }
+});
+
+ipcMain.handle('get-git-info', async (event, repoPath) => {
+  try {
+    const response = await axios.get(`http://localhost:3000/api/git/allBranchesInfo?folderPath=${repoPath}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.message);
   }
 });
 

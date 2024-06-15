@@ -1,10 +1,12 @@
 import Router from 'express';
-import { initGit } from '../controllers/git.js';
-import { gitInitValidator } from '../validators/gitInitValidator.js';
+import { initGit, getGitBranchesInfo } from '../controllers/git.js';
+import { gitInitValidator, gitGetBranchInfoValidator } from '../validators/gitValidator.js';
 import validateResult from '../middleware/validatorHandler.js';
 
 const router = Router();
 
-router.post('/init', gitInitValidator, validateResult, initGit);
+router.post('/git/init', gitInitValidator, validateResult, initGit);
+
+router.get('/git/allBranchesInfo', gitGetBranchInfoValidator, validateResult, getGitBranchesInfo);
 
 export default router;
