@@ -73,11 +73,16 @@ const drawGitGraph = (gitInfo) => {
   // 清空之前的圖形
   d3.select('#formal-graph').selectAll('*').remove();
 
-  const nodeRadius = 20;
-  const nodeSpacing = 70;
-  // const svgWidth = (parsedData.maxExternal + 1) * nodeRadius * 4 + 40;
-  const svgWidth = 2 * nodeRadius * 4 + 40;
-  const svgHeight = parsedData.nodes.length * nodeSpacing;
+  const nodeRadius = parsedData.nodeRadius;
+  const nodeSpacing = parsedData.nodeSpacing;
+  const x1 = parsedData.x1;
+  const x2 = parsedData.x2;
+  const strokeWidth = 6;
+  const svgWidth = x2 * 2;
+  const svgHeight = (parsedData.nodes.length + 3) * nodeSpacing;
+
+  //計算中心偏移量
+  const offsetX = (svgWidth - (x2 + x1)) / 2;
 
   const svg = d3.select('#formal-graph').append('svg')
     .attr('width', svgWidth)
@@ -98,9 +103,9 @@ const drawGitGraph = (gitInfo) => {
 
   parsedData.links.forEach(link => {
     svg.append('line')
-      .attr('x1', link.sourceX)
+      .attr('x1', link.sourceX + offsetX)
       .attr('y1', link.sourceY)
-      .attr('x2', link.targetX)
+      .attr('x2', link.targetX + offsetX)
       .attr('y2', link.targetY)
       .attr('stroke', 'black')
       .attr('stroke-width', 2)
@@ -110,13 +115,13 @@ const drawGitGraph = (gitInfo) => {
   const nodes = svg.selectAll('g')
     .data(parsedData.nodes)
     .enter().append('g')
-    .attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+    .attr('transform', (d) => `translate(${d.x + offsetX}, ${d.y})`);
 
   nodes.append('circle')
     .attr('r', nodeRadius)
     .attr('fill', d => d.isMainLine ? '#66B3FF' : '#FF9797')
     .attr('stroke', d => d.isMainLine ? '#ECF5FF' : '#FFECEC')
-    .attr('stroke-width', 6)
+    .attr('stroke-width', strokeWidth)
     .on('mouseover', function (event, d) {
       const tooltip = d3.select('#formal-graph')
         .append('div')
@@ -142,6 +147,64 @@ const drawGitGraph = (gitInfo) => {
     .attr('fill', 'white')
     .text((d, i) => `C${parsedData.nodes.length - 1 - i}`);
 
+  // 畫出未Add檔案
+  const additionalNodes = [];
+  const lastCommit = parsedData.nodes[0];
+
+  //如果有未Add
+  //additionalNodes要放入x、y、type、data、title
+  if (parsedData.untrackedChanges.length > 0 || parsedData.notStagedChanges.length > 0) {
+    additionalNodes.push({
+      x: x1 - 2 * nodeRadius,
+      y: lastCommit.y + nodeSpacing,
+      type: 'untracked',
+      data: [...parsedData.untrackedChanges, ...parsedData.notStagedChanges],
+      title: 'Untracked and Not Staged Files'
+    });
+  }
+
+  if (parsedData.stagedChanges.length > 0) {
+    additionalNodes.push({
+      x: x1 + 2 * nodeRadius,
+      y: lastCommit.y + nodeSpacing,
+      type: 'staged',
+      data: parsedData.stagedChanges,
+      title: 'Changes To Be Committed'
+    });
+  }
+
+  //對每個node做事
+  additionalNodes.forEach((node) => {
+    //在現有的 SVG 容器中添加了 <g> SVG 群組元素
+    const group = svg.append('g')
+      .attr('transform', `translate(${node.x + offsetX},${node.y})`);
+
+    //每個g元素添加circle元素
+    group.append('circle')
+      .attr('r', nodeRadius)
+      .attr('fill', 'none')
+      .attr('stroke', '#ECF5FF')
+      .attr('stroke-dasharray', node.type === 'untracked' ? '5,5' : 'none')
+      .attr('stroke-width', strokeWidth);
+
+    group.on('mouseover', function (event) {
+      const tooltip = d3.select('#formal-graph')
+        .append('div')
+        .attr('class', 'tooltip')
+        .style('position', 'absolute')
+        .style('background-color', 'white')
+        .style('padding', '5px')
+        .style('border', '1px solid #ccc')
+        .style('border-radius', '4px')
+        .style('pointer-events', 'none')
+        .html(`<strong>${node.title}</strong><br/>${node.data.join('<br/>')}`);
+      tooltip.style('left', `${event.pageX + 5}px`)
+        .style('top', `${event.pageY - 28}px`);
+    }).on('mouseout', function () {
+      d3.select('#formal-graph').select('.tooltip').remove();
+    });
+  });
+
   // Scroll to the bottom to show the latest commit
   const graphContainer = document.querySelector('#formal-graph');
   graphContainer.scrollTop = graphContainer.scrollHeight;
@@ -149,7 +212,7 @@ const drawGitGraph = (gitInfo) => {
 
 const parseGitInfo = (gitInfo) => {
   const branch = gitInfo.branches[gitInfo.current];
-  if (!branch) return { nodes: [], links: [] };
+  if (!branch) return { nodes: [], links: [], untrackedChanges: [], notStagedChanges: [], stagedChanges: [] };
 
   const nodeRadius = 20;
   const nodeSpacing = 70;
@@ -158,6 +221,9 @@ const parseGitInfo = (gitInfo) => {
 
   const nodes = [];
   const links = [];
+  const untrackedChanges = branch.UntrackedFiles;
+  const notStagedChanges = branch.ChangesNotStaged;
+  const stagedChanges = branch.ChangesToBeCommitted;
 
   const commitMap = {};
   branch.commits.forEach((commit, index) => {
@@ -171,14 +237,10 @@ const parseGitInfo = (gitInfo) => {
       x,
       y,
       isMainLine,
-      // isFirstSource: commit.source.length === 2 && commit.source[1] === commit.source[0]
     });
 
     commitMap[commit.hash] = { x, y, isMainLine };
 
-    // if (commit.source.length === 2) {
-    //   maxExternal++;
-    // }
   });
 
   branch.commits.forEach((commit, index) => {
@@ -195,5 +257,5 @@ const parseGitInfo = (gitInfo) => {
     });
   });
 
-  return { nodes, links };
+  return { nodes, links, untrackedChanges, notStagedChanges, stagedChanges, nodeRadius, nodeSpacing, x1, x2 };
 };
