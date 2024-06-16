@@ -28,8 +28,16 @@ export default defineConfig({
           dest: '' // 複製到dist根目錄
         },
         {
-          src: 'render.js',
-          dest: '' // 複製到dist根目錄
+          src: 'js/openFolder.js',
+          dest: 'js', // 複製到dist的js目錄
+        },
+        {
+          src: 'js/gitInitButton.js',
+          dest: 'js', 
+        },
+        {
+          src: 'js/drawGitGraph.js',
+          dest: 'js', 
         },
         {
           src: 'libs/d3.v6.min.js',
