@@ -11,7 +11,6 @@ import an from "tty";
 import nn from "os";
 import K from "zlib";
 import { EventEmitter as sn } from "events";
-import "child_process";
 function ci(e, a) {
   return function() {
     return e.apply(a, arguments);

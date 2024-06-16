@@ -75,7 +75,8 @@ const drawGitGraph = (gitInfo) => {
 
   const nodeRadius = 20;
   const nodeSpacing = 70;
-  const svgWidth = (parsedData.maxExternal + 1) * nodeRadius * 4 + 40;
+  // const svgWidth = (parsedData.maxExternal + 1) * nodeRadius * 4 + 40;
+  const svgWidth = 2 * nodeRadius * 4 + 40;
   const svgHeight = parsedData.nodes.length * nodeSpacing;
 
   const svg = d3.select('#formal-graph').append('svg')
@@ -113,8 +114,8 @@ const drawGitGraph = (gitInfo) => {
 
   nodes.append('circle')
     .attr('r', nodeRadius)
-    .attr('fill', d => d.isMainLine ? '#66B3FF' : d.isFirstSource ? '#FFA500' : '#FF9797')
-    .attr('stroke', d => d.isMainLine ? '#ECF5FF' : d.isFirstSource ? '#FFD700' : '#FFECEC')
+    .attr('fill', d => d.isMainLine ? '#66B3FF' : '#FF9797')
+    .attr('stroke', d => d.isMainLine ? '#ECF5FF' : '#FFECEC')
     .attr('stroke-width', 6)
     .on('mouseover', function (event, d) {
       const tooltip = d3.select('#formal-graph')
@@ -148,20 +149,20 @@ const drawGitGraph = (gitInfo) => {
 
 const parseGitInfo = (gitInfo) => {
   const branch = gitInfo.branches[gitInfo.current];
-  if (!branch) return { nodes: [], links: [], maxExternal: 0 };
+  if (!branch) return { nodes: [], links: [] };
 
   const nodeRadius = 20;
   const nodeSpacing = 70;
-  const xOffset = nodeRadius * 2;
+  const x1 = nodeRadius * 2;
+  const x2 = nodeRadius * 6;
 
   const nodes = [];
   const links = [];
-  let maxExternal = 0;
 
   const commitMap = {};
   branch.commits.forEach((commit, index) => {
     const isMainLine = commit.source.length <= 1;
-    const x = isMainLine ? xOffset : xOffset + nodeRadius * 4 * (maxExternal + 1);
+    const x = isMainLine ? x1 : x2;
     const y = (branch.commits.length - 1 - index) * nodeSpacing + nodeRadius;
 
     nodes.push({
@@ -170,14 +171,14 @@ const parseGitInfo = (gitInfo) => {
       x,
       y,
       isMainLine,
-      isFirstSource: commit.source.length === 2 && commit.source[1] === commit.source[0]
+      // isFirstSource: commit.source.length === 2 && commit.source[1] === commit.source[0]
     });
 
     commitMap[commit.hash] = { x, y, isMainLine };
 
-    if (commit.source.length === 2) {
-      maxExternal++;
-    }
+    // if (commit.source.length === 2) {
+    //   maxExternal++;
+    // }
   });
 
   branch.commits.forEach((commit, index) => {
@@ -194,5 +195,5 @@ const parseGitInfo = (gitInfo) => {
     });
   });
 
-  return { nodes, links, maxExternal };
+  return { nodes, links };
 };
