@@ -46,6 +46,7 @@ const clickInitButton=(button,folderPath)=>{
       button.setAttribute('disabled', true);
       clearGraph('formal-graph');
       clearGraph('preview-graph');
+      alert('Git Init Successfully.');
     } catch (error) {
       console.error('Error Initializing git:', error);
     }
