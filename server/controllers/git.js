@@ -29,6 +29,9 @@ export async function getGitBranchesInfo(req, res, next) {
   try {
     const branchesInfo = await git.branch();
     const allBranches = branchesInfo.all;
+    if (allBranches.length === 0) {
+      return res.status(404).json({ error: 'fatal: your current branch master does not have any commits yet.' });
+    }
 
     const branches = {};
     await Promise.all(allBranches.map(async (branchName) => {

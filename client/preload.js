@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('electron', {
     .then((id)=>callback(null,id))
     .catch((err)=>callback(err))
   },
-  deleteGitInfo:()=> ipcRenderer.invoke('delete-git-info')
+  deleteGitInfo:()=> ipcRenderer.invoke('delete-git-info'),
+  showAlert:(message)=>ipcRenderer.invoke('show-alert',message)
 });

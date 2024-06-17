@@ -1,7 +1,11 @@
+const clearGraph=(graphId)=>{
+  d3.select(`#${graphId}`).selectAll('*').remove();
+};
+
 const drawGitGraph = (gitInfo,graphId) => {
     const parsedData = parseGitInfo(gitInfo);
     // 清空之前的圖形
-    d3.select(`#${graphId}`).selectAll('*').remove();
+    clearGraph(graphId);
   
     const nodeRadius = parsedData.nodeRadius;
     const nodeSpacing = parsedData.nodeSpacing;

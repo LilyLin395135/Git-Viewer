@@ -65,7 +65,7 @@ ipcMain.handle('get-git-info', async (event, repoPath) => {
     const response = await axios.get(`http://localhost:3000/api/git/allBranchesInfo?folderPath=${repoPath}`);
     return response.data;
   } catch (error) {
-    throw new Error(error.message);
+    return { error: error.response?.data?.error || error.message };
   }
 });
 

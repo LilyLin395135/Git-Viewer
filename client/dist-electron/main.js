@@ -14513,10 +14513,11 @@ xe.handle("init-git", async (e, a) => {
   }
 });
 xe.handle("get-git-info", async (e, a) => {
+  var n, i;
   try {
     return (await T.get(`http://localhost:3000/api/git/allBranchesInfo?folderPath=${a}`)).data;
-  } catch (n) {
-    throw new Error(n.message);
+  } catch (s) {
+    return { error: ((i = (n = s.response) == null ? void 0 : n.data) == null ? void 0 : i.error) || s.message };
   }
 });
 xe.handle("create-git-info", async (e, a) => new Promise((n, i) => {
