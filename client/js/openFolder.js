@@ -4,6 +4,9 @@ document.getElementById('open-folder').addEventListener('click', async () => {
     if (result) {
       const gitInfo = await window.electron.getGitInfo(result.folderPath);
       console.log(gitInfo);
+      
+      await window.electron.createGitInfo(gitInfo);
+
       drawGitGraph(gitInfo,'formal-graph');
       drawGitGraph(gitInfo,'preview-graph');
       console.log('Selected folder:', result.folderPath);
@@ -26,7 +29,6 @@ document.getElementById('open-folder').addEventListener('click', async () => {
           }
         };
       }
-      //gitInfo存入DB
     }
   } catch (error) {
     console.error('Error opening folder:', error);

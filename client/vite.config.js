@@ -40,6 +40,10 @@ export default defineConfig({
           dest: 'js', 
         },
         {
+          src: 'js/operateGitInfoDb.js',
+          dest: 'js', 
+        },
+        {
           src: 'libs/d3.v6.min.js',
           dest: 'libs' // 複製到dist的libs目錄
         }

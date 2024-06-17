@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import { checkIsGitManage } from './utils/checkIsGitManage.js';
+import { db, createGitInfo, deleteGitInfo } from './database.js';
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -66,6 +67,15 @@ ipcMain.handle('get-git-info', async (event, repoPath) => {
   } catch (error) {
     throw new Error(error.message);
   }
+});
+
+ipcMain.handle('create-git-info',(event,gitInfo)=>{
+  deleteGitInfo();
+  createGitInfo(gitInfo);
+});
+
+ipcMain.handle('delete-git-info',()=>{
+  deleteGitInfo();
 });
 
 app.whenReady().then(createWindow);
