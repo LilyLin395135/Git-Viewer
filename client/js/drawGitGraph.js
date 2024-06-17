@@ -1,7 +1,7 @@
-const drawGitGraph = (gitInfo) => {
+const drawGitGraph = (gitInfo,graphId) => {
     const parsedData = parseGitInfo(gitInfo);
     // 清空之前的圖形
-    d3.select('#formal-graph').selectAll('*').remove();
+    d3.select(`#${graphId}`).selectAll('*').remove();
   
     const nodeRadius = parsedData.nodeRadius;
     const nodeSpacing = parsedData.nodeSpacing;
@@ -14,7 +14,7 @@ const drawGitGraph = (gitInfo) => {
     //計算中心偏移量
     const offsetX = (svgWidth - (x2 + x1)) / 2;
   
-    const svg = d3.select('#formal-graph').append('svg')
+    const svg = d3.select(`#${graphId}`).append('svg')
       .attr('width', svgWidth)
       .attr('height', svgHeight)
       .attr('viewBox', `0 0 ${svgWidth} ${svgHeight}`)
@@ -53,7 +53,7 @@ const drawGitGraph = (gitInfo) => {
       .attr('stroke', d => d.isMainLine ? '#ECF5FF' : '#FFECEC')
       .attr('stroke-width', strokeWidth)
       .on('mouseover', function (event, d) {
-        const tooltip = d3.select('#formal-graph')
+        const tooltip = d3.select(`#${graphId}`)
           .append('div')
           .attr('class', 'tooltip')
           .style('position', 'absolute')
@@ -67,7 +67,7 @@ const drawGitGraph = (gitInfo) => {
           .style('top', `${event.pageY - 28}px`);
       })
       .on('mouseout', function () {
-        d3.select('#formal-graph').select('.tooltip').remove();
+        d3.select(`#${graphId}`).select('.tooltip').remove();
       });
   
     nodes.append('text')
@@ -118,7 +118,7 @@ const drawGitGraph = (gitInfo) => {
         .attr('stroke-width', strokeWidth);
   
       group.on('mouseover', function (event) {
-        const tooltip = d3.select('#formal-graph')
+        const tooltip = d3.select(`#${graphId}`)
           .append('div')
           .attr('class', 'tooltip')
           .style('position', 'absolute')
@@ -131,12 +131,12 @@ const drawGitGraph = (gitInfo) => {
         tooltip.style('left', `${event.pageX + 5}px`)
           .style('top', `${event.pageY - 28}px`);
       }).on('mouseout', function () {
-        d3.select('#formal-graph').select('.tooltip').remove();
+        d3.select(`#${graphId}`).select('.tooltip').remove();
       });
     });
   
     // Scroll to the bottom to show the latest commit
-    const graphContainer = document.querySelector('#formal-graph');
+    const graphContainer = document.querySelector(`#${graphId}`);
     graphContainer.scrollTop = graphContainer.scrollHeight;
   };
   

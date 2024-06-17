@@ -42,6 +42,7 @@ body {
     align-items: start; /* 讓graph容器從頂部開始排列，滾輪捲動可以滾到最上面 */
     background-color: #ffffff;
     border: 1px solid #ddd;
+    height: calc(100vh - 150px); /* 100vh 减去 terminal 的高度和一些額外的空間 */
     overflow-y: auto; /* 允許垂直滾動 */
 }
 
@@ -113,8 +114,3 @@ body {
     background-color: #bbb;
     cursor: not-allowed;
 }
-
-#formal-graph {
-    height: calc(100vh - 150px); /* 100vh 减去 terminal 的高度和一些額外的空間 */
-    overflow-y: auto; /* 允許垂直滾動 */
-  }
