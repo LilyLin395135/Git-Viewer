@@ -4,11 +4,20 @@ document.getElementById('open-folder').addEventListener('click', async () => {
     if (result) {
       const gitInfo = await window.electron.getGitInfo(result.folderPath);
       console.log(gitInfo);
-      
-      await window.electron.createGitInfo(gitInfo);
 
-      drawGitGraph(gitInfo,'formal-graph');
-      drawGitGraph(gitInfo,'preview-graph');
+      let gitInfoId = 0;
+      await window.electron.deleteGitInfo();
+      await window.electron.createGitInfo(gitInfo, (err, id) => {
+        if (err) {
+          console.error('Error creating git info', err);
+        } else {
+          console.log('Insert git info with ID:', id);
+          gitInfoId = id;
+        }
+      });
+
+      drawGitGraph(gitInfo, 'formal-graph');
+      drawGitGraph(gitInfo, 'preview-graph');
       console.log('Selected folder:', result.folderPath);
 
       const gitInitButton = document.getElementById('git-init');

@@ -14435,12 +14435,14 @@ function xt() {
   };
 })(ni);
 var vt = ni.exports;
-const ht = /* @__PURE__ */ ha(vt), bt = ht.verbose(), gt = le.getPath("userData"), yt = P.join(gt, "gitviewer.db"), Pe = new bt.Database(yt, (e) => {
+const ht = /* @__PURE__ */ ha(vt), bt = ht.verbose(), gt = le.getPath("userData"), ii = P.join(gt, "gitviewer.db");
+console.log("Database path:", ii);
+const Pe = new bt.Database(ii, (e) => {
   e ? console.error("Error opening database", e) : (console.log("Database opened successfully"), Pe.serialize(() => {
-    wt();
+    yt();
   }));
 });
-function wt() {
+function yt() {
   Pe.run(`
       CREATE TABLE IF NOT EXISTS git_info(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14450,13 +14452,18 @@ function wt() {
     e ? console.error("Error creating table", e) : console.log("Table created successfully");
   });
 }
-function kt(e) {
-  const a = Pe.prepare("INSERT INTO git_info (data) VALUES (?)");
-  a.run(JSON.stringify(e), (n) => {
-    n ? console.error("Error inserting data", n) : console.log("Data inserted successfully");
-  }), a.finalize();
+function wt(e, a) {
+  const n = Pe.prepare("INSERT INTO git_info (data) VALUES (?)", (i) => {
+    if (i) {
+      console.error("Error preparing statement", i), a(i, null);
+      return;
+    }
+  });
+  n.run(JSON.stringify(e), function(i) {
+    i ? (console.error("Error inserting data", i), a(i, null)) : (console.log("Data inserted successfully"), a(null, this.lastID));
+  }), n.finalize();
 }
-function ii() {
+function kt() {
   Pe.run("DELETE FROM git_info", (e) => {
     e ? console.error("Error deleting data", e) : console.log("Data deleted successfully");
   });
@@ -14512,11 +14519,13 @@ xe.handle("get-git-info", async (e, a) => {
     throw new Error(n.message);
   }
 });
-xe.handle("create-git-info", (e, a) => {
-  ii(), kt(a);
-});
+xe.handle("create-git-info", async (e, a) => new Promise((n, i) => {
+  wt(a, (s, o) => {
+    s ? i(s) : n(o);
+  });
+}));
 xe.handle("delete-git-info", () => {
-  ii();
+  kt();
 });
 le.whenReady().then(si);
 le.on("window-all-closed", () => {

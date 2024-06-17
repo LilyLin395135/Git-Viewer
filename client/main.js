@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
-import path from 'path';
+import path, { resolve } from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import { checkIsGitManage } from './utils/checkIsGitManage.js';
@@ -69,9 +69,16 @@ ipcMain.handle('get-git-info', async (event, repoPath) => {
   }
 });
 
-ipcMain.handle('create-git-info',(event,gitInfo)=>{
-  deleteGitInfo();
-  createGitInfo(gitInfo);
+ipcMain.handle('create-git-info',async(event,gitInfo)=>{
+  return new Promise((resolve,reject)=>{
+    createGitInfo(gitInfo,(err,id)=>{
+      if(err){
+        reject(err);
+      } else {
+        resolve(id);
+      }
+    });
+  });
 });
 
 ipcMain.handle('delete-git-info',()=>{
