@@ -1,22 +1,29 @@
+let folderSelected = false; //在全域範圍內，才能在 openFolder.js 和 commandHandler.js 中都能被正確地存取和更新。
+let currentFolderPath = '';
+let tempFolderPath = '';
+
 document.getElementById('open-folder').addEventListener('click', async () => {
   try {
     const result = await window.electron.openFolder();
     const gitInitButton = document.getElementById('git-init');
 
     if (result) {
+      folderSelected = true; // 設置 folderSelected 為 true
+      currentFolderPath = result.folderPath;
+      tempFolderPath = await window.electron.prepareTempGitFolder(currentFolderPath);
       clearGraph('formal-graph');
       clearGraph('preview-graph');
-      updateButtonStatus(gitInitButton, result.folderPath, result.gitExists);
+      updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
 
       if (!result.gitExists) {
-        clickInitButton(gitInitButton, result.folderPath);
+        clickInitButton(gitInitButton, currentFolderPath);
         return;
       }
 
-      const gitInfo = await window.electron.getGitInfo(result.folderPath);
+      const gitInfo = await window.electron.getGitInfo(currentFolderPath);
       if (gitInfo.error) {
-        updateButtonStatus(gitInitButton, result.folderPath, result.gitExists);
-        alert(gitInfo.error); // 顯示alert訊息
+        updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
+        alert(gitInfo.error);
         return;
       }
       console.log(gitInfo);
@@ -34,7 +41,7 @@ document.getElementById('open-folder').addEventListener('click', async () => {
 
       drawGitGraph(gitInfo, 'formal-graph');
       drawGitGraph(gitInfo, 'preview-graph');
-      console.log('Selected folder:', result.folderPath);
+      console.log('Selected folder:', currentFolderPath);
     }
   } catch (error) {
     console.error('Error opening folder:', error);
