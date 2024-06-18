@@ -86,15 +86,73 @@ ipcMain.handle('get-git-info', async (event, repoPath) => {
 ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   try {
     const tempFolderPath = path.join(app.getPath('userData'), 'temp-git-folder');
+    const worktreePath = path.join(tempFolderPath, 'temp-worktree');
+
+    // 清理已註冊但缺失的工作樹
+    const git = simpleGit(sourceFolderPath);
+    await git.raw(['worktree', 'prune']);
+
+    // 檢查並刪除已存在的工作樹
+    const worktrees = await git.raw(['worktree', 'list']);
+    if (worktrees.includes(worktreePath)) {
+      await git.raw(['worktree', 'remove', worktreePath]);
+    }
+
     if (fs.existsSync(tempFolderPath)) {
       fs.rmSync(tempFolderPath, { recursive: true, force: true });
     }
     fs.mkdirSync(tempFolderPath, { recursive: true });
 
-    const git = simpleGit();
-    await git.clone(sourceFolderPath, tempFolderPath);
+    // 獲取當前分支名稱
+    const currentBranch = (await git.branch()).current;
 
-    return tempFolderPath;
+    // 獲取未跟蹤文件列表
+    const untrackedFilesOutput = await git.raw(['ls-files', '--others', '--exclude-standard']);
+    const untrackedFiles = untrackedFilesOutput.split('\n').filter(Boolean);
+
+    // 使用 worktree 添加一个新工作副本，強制覆蓋
+    await git.raw(['worktree', 'add', '-f', worktreePath, currentBranch]);
+
+    // 複製未跟蹤文件到臨時工作樹中
+    for (const file of untrackedFiles) {
+      const sourceFile = path.join(sourceFolderPath, file);
+      const targetFile = path.join(worktreePath, file);
+      const targetDir = path.dirname(targetFile);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      fs.copyFileSync(sourceFile, targetFile);
+    }
+
+    const tempGit = simpleGit(worktreePath);
+
+    // 創建並應用暫存區的補丁
+    const cachedDiffOutput = await git.diff(['--cached']);
+    if (cachedDiffOutput.trim()) {
+      const cachedPatchFile = path.join(app.getPath('userData'), 'cached-temp.patch');
+      fs.writeFileSync(cachedPatchFile, cachedDiffOutput);
+      await tempGit.raw(['apply', '--index', cachedPatchFile]);
+      fs.unlinkSync(cachedPatchFile);
+    }
+
+    //創建並應用工作區的補丁
+    const workingDiffOutput = await git.diff();
+    if (workingDiffOutput.trim()) {
+      const workingPatchFile = path.join(app.getPath('userData'), 'working-temp.patch');
+      fs.writeFileSync(workingPatchFile, workingDiffOutput);
+      await tempGit.raw(['apply', workingPatchFile]);
+      fs.unlinkSync(workingPatchFile);
+    }
+
+    // 添加未跟蹤文件，但不提交
+    if (untrackedFiles.length > 0) {
+      await tempGit.raw(['add', '--intent-to-add', ...untrackedFiles]);
+      for (const file of untrackedFiles) {
+        await tempGit.raw(['reset', 'HEAD', file]);
+      }
+    }
+
+    return worktreePath;
   } catch (error) {
     console.error('Error preparing temp git folder:', error);
     throw error;

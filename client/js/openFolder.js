@@ -21,27 +21,25 @@ document.getElementById('open-folder').addEventListener('click', async () => {
       }
 
       const gitInfo = await window.electron.getGitInfo(currentFolderPath);
+      const gitInfoTemp = await window.electron.getGitInfo(tempFolderPath);
+
       if (gitInfo.error) {
-        updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
+        // updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
         alert(gitInfo.error);
         return;
       }
-      console.log(gitInfo);
-
-      let gitInfoId = 0;
-      await window.electron.deleteGitInfo();
-      await window.electron.createGitInfo(gitInfo, (err, id) => {
-        if (err) {
-          console.error('Error creating git info', err);
-        } else {
-          console.log('Insert git info with ID:', id);
-          gitInfoId = id;
-        }
-      });
+      console.log(`gitInfo:${gitInfo}`);
+      if (gitInfoTemp.error) {
+        // updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
+        alert(gitInfoTemp.error);
+        return;
+      }
+      console.log(`gitInfoTemp:${gitInfoTemp}`);
 
       drawGitGraph(gitInfo, 'formal-graph');
-      drawGitGraph(gitInfo, 'preview-graph');
+      drawGitGraph(gitInfoTemp, 'preview-graph');
       console.log('Selected folder:', currentFolderPath);
+      console.log('Temp folder:', tempFolderPath);
     }
   } catch (error) {
     console.error('Error opening folder:', error);
