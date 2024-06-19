@@ -10,6 +10,7 @@ export default defineConfig({
       entry: 'main.js', // Electron 主入口檔案
       vite: {
         build: {
+          sourcemap: true, // 啟用源映射
           rollupOptions: {
             output: {
               entryFileNames: '[name].js',
@@ -23,35 +24,18 @@ export default defineConfig({
     renderer(),
     viteStaticCopy({
       targets: [
-        {
-          src: 'preload.js',
-          dest: '' // 複製到dist根目錄
-        },
-        {
-          src: 'js/openFolder.js',
-          dest: 'js', // 複製到dist的js目錄
-        },
-        {
-          src: 'js/gitInitButton.js',
-          dest: 'js', 
-        },
-        {
-          src: 'js/drawGitGraph.js',
-          dest: 'js', 
-        },
-        {
-          src: 'js/commandHandler.js',
-          dest: 'js', 
-        },
-        {
-          src: 'libs/d3.v6.min.js',
-          dest: 'libs' // 複製到dist的libs目錄
-        }
+        { src: 'preload.js', dest: '' },
+        { src: 'js/openFolder.js', dest: 'js' },
+        { src: 'js/gitInitButton.js', dest: 'js' },
+        { src: 'js/drawGitGraph.js', dest: 'js' },
+        { src: 'js/commandHandler.js', dest: 'js' },
+        { src: 'libs/d3.v6.min.js', dest: 'libs' }
       ]
     })
   ],
   build: {
     outDir: 'dist',
+    sourcemap: true, // 啟用源映射
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),

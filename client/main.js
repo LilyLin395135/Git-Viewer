@@ -3,8 +3,16 @@ import path, { resolve } from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import simpleGit from 'simple-git';
+import fse from 'fs-extra';
+import ignore from 'ignore';
 import { checkIsGitManage } from './utils/checkIsGitManage.js';
 import { db, createGitInfo, deleteGitInfo } from './database.js';
+
+// if (process.env.NODE_ENV !== 'production') {
+//   import('electron-debug').then(electronDebug => {
+//     electronDebug.default({ showDevTools: true });
+//   });
+// }
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -86,73 +94,52 @@ ipcMain.handle('get-git-info', async (event, repoPath) => {
 ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   try {
     const tempFolderPath = path.join(app.getPath('userData'), 'temp-git-folder');
-    const worktreePath = path.join(tempFolderPath, 'temp-worktree');
-
-    // 清理已註冊但缺失的工作樹
-    const git = simpleGit(sourceFolderPath);
-    await git.raw(['worktree', 'prune']);
-
-    // 檢查並刪除已存在的工作樹
-    const worktrees = await git.raw(['worktree', 'list']);
-    if (worktrees.includes(worktreePath)) {
-      await git.raw(['worktree', 'remove', worktreePath]);
-    }
 
     if (fs.existsSync(tempFolderPath)) {
-      fs.rmSync(tempFolderPath, { recursive: true, force: true });
+      fse.removeSync(tempFolderPath);
     }
-    fs.mkdirSync(tempFolderPath, { recursive: true });
+    fse.mkdirSync(tempFolderPath, { recursive: true });
 
-    // 獲取當前分支名稱
-    const currentBranch = (await git.branch()).current;
+    // 初始化 ignore 实例
+    const ig = ignore();
 
-    // 獲取未跟蹤文件列表
-    const untrackedFilesOutput = await git.raw(['ls-files', '--others', '--exclude-standard']);
-    const untrackedFiles = untrackedFilesOutput.split('\n').filter(Boolean);
-
-    // 使用 worktree 添加一个新工作副本，強制覆蓋
-    await git.raw(['worktree', 'add', '-f', worktreePath, currentBranch]);
-
-    // 複製未跟蹤文件到臨時工作樹中
-    for (const file of untrackedFiles) {
-      const sourceFile = path.join(sourceFolderPath, file);
-      const targetFile = path.join(worktreePath, file);
-      const targetDir = path.dirname(targetFile);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
+    // 遍历目录并递归读取 .gitignore 文件
+    const addIgnoreFiles = (dir) => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          addIgnoreFiles(fullPath);
+        } else if (entry.isFile() && entry.name === '.gitignore') {
+          const gitignoreContent = fs.readFileSync(fullPath).toString();
+          ig.add(gitignoreContent);
+        }
       }
-      fs.copyFileSync(sourceFile, targetFile);
-    }
+    };
 
-    const tempGit = simpleGit(worktreePath);
+    addIgnoreFiles(sourceFolderPath);
 
-    // 創建並應用暫存區的補丁
-    const cachedDiffOutput = await git.diff(['--cached']);
-    if (cachedDiffOutput.trim()) {
-      const cachedPatchFile = path.join(app.getPath('userData'), 'cached-temp.patch');
-      fs.writeFileSync(cachedPatchFile, cachedDiffOutput);
-      await tempGit.raw(['apply', '--index', cachedPatchFile]);
-      fs.unlinkSync(cachedPatchFile);
-    }
+    // 递归地复制文件和目录，同时排除 .gitignore 中的文件
+    const copyFolderRecursive = async (source, target) => {
+      const entries = fs.readdirSync(source, { withFileTypes: true });
+      for (const entry of entries) {
+        const sourcePath = path.join(source, entry.name);
+        const targetPath = path.join(target, entry.name);
+        const relativePath = path.relative(sourceFolderPath, sourcePath);
+        if (ig.ignores(relativePath)) continue;
 
-    //創建並應用工作區的補丁
-    const workingDiffOutput = await git.diff();
-    if (workingDiffOutput.trim()) {
-      const workingPatchFile = path.join(app.getPath('userData'), 'working-temp.patch');
-      fs.writeFileSync(workingPatchFile, workingDiffOutput);
-      await tempGit.raw(['apply', workingPatchFile]);
-      fs.unlinkSync(workingPatchFile);
-    }
-
-    // 添加未跟蹤文件，但不提交
-    if (untrackedFiles.length > 0) {
-      await tempGit.raw(['add', '--intent-to-add', ...untrackedFiles]);
-      for (const file of untrackedFiles) {
-        await tempGit.raw(['reset', 'HEAD', file]);
+        if (entry.isDirectory()) {
+          fse.mkdirSync(targetPath, { recursive: true });
+          await copyFolderRecursive(sourcePath, targetPath);
+        } else {
+          fse.copyFileSync(sourcePath, targetPath);
+        }
       }
-    }
+    };
 
-    return worktreePath;
+    await copyFolderRecursive(sourceFolderPath, tempFolderPath);
+
+    return tempFolderPath;
   } catch (error) {
     console.error('Error preparing temp git folder:', error);
     throw error;
@@ -172,7 +159,7 @@ ipcMain.handle('execute-git-command', async (event, { command, tempFolderPath })
     console.log(`mainCommand:${mainCommand}`);
     console.log(`args:${args}`);
 
-    switch(mainCommand) {
+    switch (mainCommand) {
       case 'add':
         await git.add(args);
         break;
