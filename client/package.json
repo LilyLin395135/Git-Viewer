@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "start": "electron ./"
+    "start": "electron --inspect=5858 ."
   },
   "keywords": [],
   "author": "",

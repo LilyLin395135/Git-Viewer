@@ -3,7 +3,8 @@
 
 <head>
   <title>Git Viewer</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="./libs/d3.v6.min.js" defer></script>
   <script defer src="./js/openFolder.js"></script>
@@ -26,7 +27,7 @@
       <div id="try-command" class="box">
         <div>
           <label for="command-input">Try Command</label>
-          <button id="run-all" class="button" disabled>Run All</button>
+          <button id="run-all" class="button">Run All</button>
         </div>
         <ul id="command-list"></ul>
         <textarea id="command-input" placeholder="Placeholder"></textarea>

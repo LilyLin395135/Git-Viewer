@@ -8,11 +8,12 @@ import ignore from 'ignore';
 import { checkIsGitManage } from './utils/checkIsGitManage.js';
 import { db, createGitInfo, deleteGitInfo } from './database.js';
 
-// if (process.env.NODE_ENV !== 'production') {
-//   import('electron-debug').then(electronDebug => {
-//     electronDebug.default({ showDevTools: true });
-//   });
-// }
+// chrome debug tool
+if (process.env.NODE_ENV !== 'production') {
+  import('electron-debug').then(electronDebug => {
+    electronDebug.default({ showDevTools: true });
+  });
+}
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -146,9 +147,9 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   }
 });
 
-ipcMain.handle('execute-git-command', async (event, { command, tempFolderPath }) => {
+ipcMain.handle('execute-git-command', async (event, { command,folderPath }) => {
   try {
-    const git = simpleGit(tempFolderPath);
+    const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
 
     // Remove 'git' from the command if it's included
@@ -180,7 +181,7 @@ ipcMain.handle('execute-git-command', async (event, { command, tempFolderPath })
         await git.raw([mainCommand, ...args]);
     }
 
-    const gitInfo = await getGitInfo(tempFolderPath);
+    const gitInfo = await getGitInfo(folderPath);
     await new Promise((resolve, reject) => {
       createGitInfo(gitInfo, (err, id) => {
         if (err) {

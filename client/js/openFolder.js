@@ -1,3 +1,4 @@
+const gitInitButton = document.getElementById('git-init');
 let folderSelected = false; //在全域範圍內，才能在 openFolder.js 和 commandHandler.js 中都能被正確地存取和更新。
 let currentFolderPath = '';
 let tempFolderPath = '';
@@ -5,7 +6,6 @@ let tempFolderPath = '';
 document.getElementById('open-folder').addEventListener('click', async () => {
   try {
     const result = await window.electron.openFolder();
-    const gitInitButton = document.getElementById('git-init');
 
     if (result) {
       folderSelected = true; // 設置 folderSelected 為 true
@@ -14,7 +14,7 @@ document.getElementById('open-folder').addEventListener('click', async () => {
       clearCommandList();
       clearGraph('formal-graph');
       clearGraph('preview-graph');
-      updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
+      updateInitButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
 
       if(!result.gitExists){
         return;

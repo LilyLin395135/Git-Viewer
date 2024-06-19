@@ -19,22 +19,21 @@ const getFolderStatus = async () => {
   return { folderPath, gitExists };
 };
 
-const updateButtonStatus = (button, folderPath, gitExists) => {
+const updateInitButtonStatus = (folderPath, gitExists) => {
   if (!folderPath || gitExists) {
-    button.setAttribute('disabled', true);
+    gitInitButton.setAttribute('disabled', true);
   } else {
-    button.removeAttribute('disabled');
+    gitInitButton.removeAttribute('disabled');
   }
 };
 
 const initButtonState = async () => {
-  const gitInitButton = document.getElementById('git-init');
   const { folderPath, gitExists } = await getFolderStatus();
 
-  updateButtonStatus(gitInitButton, folderPath, gitExists);
+  updateInitButtonStatus(folderPath, gitExists);
 };
 
-document.getElementById('git-init').addEventListener('click', async () => {
+gitInitButton.addEventListener('click', async () => {
   try {
     if (currentFolderPath) {
       const response = await window.electron.initGit(currentFolderPath);
@@ -43,7 +42,7 @@ document.getElementById('git-init').addEventListener('click', async () => {
         return;
       }
       console.log(response);
-      document.getElementById('git-init').setAttribute('disabled', true);
+      gitInitButton.setAttribute('disabled', true);
       clearGraph('formal-graph');
       clearGraph('preview-graph');
       alert('Git Init Successfully.');
