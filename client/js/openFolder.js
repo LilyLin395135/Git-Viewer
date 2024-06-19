@@ -10,27 +10,31 @@ document.getElementById('open-folder').addEventListener('click', async () => {
     if (result) {
       folderSelected = true; // 設置 folderSelected 為 true
       currentFolderPath = result.folderPath;
-      tempFolderPath = await window.electron.prepareTempGitFolder(currentFolderPath);
+
+      clearCommandList();
       clearGraph('formal-graph');
       clearGraph('preview-graph');
       updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
 
-      if (!result.gitExists) {
-        clickInitButton(gitInitButton, currentFolderPath);
+      if(!result.gitExists){
         return;
       }
 
       const gitInfo = await window.electron.getGitInfo(currentFolderPath);
-      const gitInfoTemp = await window.electron.getGitInfo(tempFolderPath);
-
       if (gitInfo.error) {
-        // updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
         alert(gitInfo.error);
         return;
       }
+
+      tempFolderPath = await window.electron.prepareTempGitFolder(currentFolderPath);
+      if (tempFolderPath.error) {
+        alert(tempFolderPath.error);
+        return;
+      }
+
+      const gitInfoTemp = await window.electron.getGitInfo(tempFolderPath);
       console.log(`gitInfo:${gitInfo}`);
       if (gitInfoTemp.error) {
-        // updateButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
         alert(gitInfoTemp.error);
         return;
       }
@@ -43,5 +47,6 @@ document.getElementById('open-folder').addEventListener('click', async () => {
     }
   } catch (error) {
     console.error('Error opening folder:', error);
+    alert('Error opening folder: ' + error.message);
   }
 });

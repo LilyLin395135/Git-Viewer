@@ -27,17 +27,19 @@ export async function getGitBranchesInfo(req, res, next) {
   const git = simpleGit(gitRepoPath);
 
   try {
-    const branchesInfo = await git.branch();
+    const branchesInfo = await git.branchLocal();
     const allBranches = branchesInfo.all;
     if (allBranches.length === 0) {
       return res.status(404).json({ error: 'fatal: your current branch master does not have any commits yet.' });
     }
 
     const branches = {};
+    const currentBranch = branchesInfo.current;
+    const { detached } = branchesInfo;
+
     await Promise.all(allBranches.map(async (branchName) => {
-      const log = await git.log([branchName]);
-      const status = await git.status();
-      const commits = await Promise.all(log.all.map(async (commit) => {
+      const [log, status] = await Promise.all([git.log([branchName]), git.status()]);
+      const commitPromises = log.all.map(async (commit) => {
         const commitDetails = await git.show(['-s', '--format=%P', commit.hash]);
         const parents = commitDetails.trim().split(' ');
         return {
@@ -47,7 +49,9 @@ export async function getGitBranchesInfo(req, res, next) {
           author_email: commit.author_email,
           source: parents
         };
-      }));
+      });
+      const commits = await Promise.all(commitPromises);
+
       const changesNotStaged = status.files
         .filter((file) => file.working_dir === 'M')
         .map((file) => file.path);
@@ -63,8 +67,6 @@ export async function getGitBranchesInfo(req, res, next) {
         ChangesToBeCommitted: status.staged // unCommitted
       };
     }));
-    const currentBranch = branchesInfo.current;
-    const { detached } = branchesInfo;
 
     return res.json({
       all: allBranches,

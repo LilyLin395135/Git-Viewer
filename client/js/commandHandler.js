@@ -1,6 +1,7 @@
+const commandInput = document.getElementById('command-input');
+const commandList = document.getElementById('command-list');
+
 document.addEventListener('DOMContentLoaded', () => {
-    const commandInput = document.getElementById('command-input');
-    const commandList = document.getElementById('command-list');
 
     commandInput.addEventListener('keydown', async (event) => {
         if (event.key === 'Enter') {
@@ -9,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if(!folderSelected){
                 alert('Please select a folder first.');
-                //顯示 alert 後，輸入框會失去焦點。在顯示 alert 後重新將焦點設置到輸入框。
                 commandInput.focus();
                 return;
             }
@@ -34,3 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     })
 });
+
+function clearCommandList(){
+    while(commandList.firstChild){
+        commandList.removeChild(commandList.firstChild);
+    };
+};

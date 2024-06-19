@@ -34,24 +34,24 @@ const initButtonState = async () => {
   updateButtonStatus(gitInitButton, folderPath, gitExists);
 };
 
-const clickInitButton=(button,folderPath)=>{
-  button.onclick = async () => {
-    try {
-      const response = await window.electron.initGit(folderPath);
+document.getElementById('git-init').addEventListener('click', async () => {
+  try {
+    if (currentFolderPath) {
+      const response = await window.electron.initGit(currentFolderPath);
       if (response && response.status === 'cancelled') {
         console.log('Git init operation cancelled.');
         return;
       }
       console.log(response);
-      button.setAttribute('disabled', true);
+      document.getElementById('git-init').setAttribute('disabled', true);
       clearGraph('formal-graph');
       clearGraph('preview-graph');
       alert('Git Init Successfully.');
-    } catch (error) {
-      console.error('Error Initializing git:', error);
     }
-  };
-
-};
+  } catch (error) {
+    console.error('Error initializing git:', error);
+    alert('Error Initializing git: ' + error.message);
+  }
+});
 
 document.addEventListener('DOMContentLoaded', initButtonState);
