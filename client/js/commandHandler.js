@@ -26,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (command.startsWith('git ')) {
+
+                if (command.startsWith('git push')) {
+                    const confirmPush = confirm('We will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
+                    if (!confirmPush) return;
+                }
                 const listItem = document.createElement('li');
                 listItem.textContent = command;
                 commandList.appendChild(listItem);
@@ -37,13 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath });
                     if (result.message) {
                         alert(result.message);
-                    } else {
+                    } else if (result.conflict) {
+                        const conflictLines = result.conflicts.map(conflict => conflict.line).filter(line => line.trim() !== '');
+                        if (conflictLines.length > 0) {
+                            alert('Conflicts detected:\n' + JSON.stringify(conflictLines, null, 2));
+                        } else {
+                            alert('No direct conflicts found, but there are differences. Please review.');
+                        }
+                    }
+                    else {
                         console.log('Update git info', result);
                         drawGitGraph(result, 'preview-graph');
                     }
 
                 } catch (error) {
                     console.error('Error executing git command:', error);
+                    alert('Error executing git command: ' + error.message);
                 }
             } else {
                 alert('Please Enter a valid git command.');
@@ -84,21 +98,3 @@ function clearCommandList() {
         commandList.removeChild(commandList.firstChild);
     };
 };
-
-// async function runAllCommand(command) {
-//     try {
-//         const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath });
-//         if (result.message) {
-//             alert(result.message);
-//             return;
-//         }
-//         if (result.error) {
-//             throw new Error(result.error);
-//         }
-//         console.log(`Command executed: ${command}`);
-//         return result;
-//     } catch (error) {
-//         console.error('Error executing git command:', error);
-//         throw error;
-//     }
-// }
