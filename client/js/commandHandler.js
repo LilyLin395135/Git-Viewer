@@ -34,9 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateRunAllButtonStatus(currentFolderPath, commandExists);
 
                 try {
-                    const gitInfo = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath });
-                    console.log('Update git info', gitInfo);
-                    drawGitGraph(gitInfo, 'preview-graph');
+                    const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath });
+                    if (result.message) {
+                        alert(result.message);
+                    } else {
+                        console.log('Update git info', result);
+                        drawGitGraph(result, 'preview-graph');
+                    }
+
                 } catch (error) {
                     console.error('Error executing git command:', error);
                 }
@@ -46,21 +51,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     })
+
     runAllButton.addEventListener('click', async () => {
         try {
             while (commandList.children.length > 0) {
-                const commandElement=commandList.children[0];
+                const commandElement = commandList.children[0];
                 const command = commandElement.textContent;
                 commandList.removeChild(commandElement);
 
-                const gitInfo = await runAllCommand(command);
-
-                drawGitGraph(gitInfo, 'formal-graph');
+                // const gitInfo = await runAllCommand(command);
+                const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath });
+                if (result.message) {
+                    alert(result.message);
+                }
+                else {
+                    console.log(`Command executed: ${command}`);
+                    drawGitGraph(result, 'formal-graph');
+                }
             }
             alert('All commands executed successfully!');
         } catch (error) {
             console.error('Error executing commands:', error);
             alert('Error executing commands: ' + error.message);
+        } finally {
+            updateRunAllButtonStatus();
         }
     });
 });
@@ -71,16 +85,20 @@ function clearCommandList() {
     };
 };
 
-async function runAllCommand(command) {
-    try {
-        const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath });
-        if (result.error) {
-            throw new Error(result.error);
-        }
-        console.log(`Command executed: ${command}`);
-        return result;
-    } catch (error) {
-        console.error('Error executing git command:', error);
-        throw error;
-    }
-}
+// async function runAllCommand(command) {
+//     try {
+//         const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath });
+//         if (result.message) {
+//             alert(result.message);
+//             return;
+//         }
+//         if (result.error) {
+//             throw new Error(result.error);
+//         }
+//         console.log(`Command executed: ${command}`);
+//         return result;
+//     } catch (error) {
+//         console.error('Error executing git command:', error);
+//         throw error;
+//     }
+// }

@@ -147,7 +147,7 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   }
 });
 
-ipcMain.handle('execute-git-command', async (event, { command,folderPath }) => {
+ipcMain.handle('execute-git-command', async (event, { command, folderPath }) => {
   try {
     const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
@@ -164,6 +164,7 @@ ipcMain.handle('execute-git-command', async (event, { command,folderPath }) => {
       case 'add':
         await git.add(args);
         break;
+
       case 'commit':
         const messageIndex = args.indexOf('-m');
         if (messageIndex !== -1) {
@@ -173,6 +174,44 @@ ipcMain.handle('execute-git-command', async (event, { command,folderPath }) => {
           await git.commit(args.join(' '));
         }
         break;
+
+      case 'branch':
+        await git.branch(args);
+        break;
+
+      case 'checkout':
+        if (args.length === 1) {
+          const branchName = args[0];
+          const currentBranch = (await (git.status())).current;
+          if(branchName===currentBranch){
+            return {message: `Already on '${branchName}`};
+          }
+
+          const worktreeList = await git.raw(['worktree', 'list']);
+          const worktreeLines = worktreeList.split('\n');
+
+          // 检查是否有现有的工作树并移除
+          for (const line of worktreeLines) {
+            if (line.includes(branchName) || line.includes('temp-worktree')) {
+              const worktreePath = line.split(' ')[0];
+              await git.raw(['worktree', 'remove', worktreePath]);
+            }
+          }
+
+          await git.checkout(branchName);
+        } else {
+          await git.checkout(args);
+        }
+        break;
+
+      case 'merge':
+        await git.merge(args);
+        break;
+
+      case 'branch -d':
+        await git.deleteLocalBranch(args[0]);
+        break;
+
       case 'status':
         await git.status();
         break;
