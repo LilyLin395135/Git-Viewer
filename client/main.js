@@ -147,7 +147,7 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   }
 });
 
-ipcMain.handle('execute-git-command', async (event, { command, folderPath }) => {
+ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = true }) => {
   try {
     const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
@@ -183,14 +183,14 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath }) => 
         if (args.length === 1) {
           const branchName = args[0];
           const currentBranch = (await (git.status())).current;
-          if(branchName===currentBranch){
-            return {message: `Already on '${branchName}`};
+          if (branchName === currentBranch) {
+            return { message: `Already on '${branchName}` };
           }
 
           const worktreeList = await git.raw(['worktree', 'list']);
           const worktreeLines = worktreeList.split('\n');
 
-          // 检查是否有现有的工作树并移除
+          // 檢查是否有現有的工作樹並移除
           for (const line of worktreeLines) {
             if (line.includes(branchName) || line.includes('temp-worktree')) {
               const worktreePath = line.split(' ')[0];
@@ -215,6 +215,58 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath }) => 
       case 'status':
         await git.status();
         break;
+
+      case 'push':
+        try {
+          if (isPushCheckOnly) {
+            // preview的部分不執行 git push，而是協助檢查是否有衝突用 git fetch、git merge-base 和 git diff
+            await git.fetch();
+            const localBranch = (await git.status()).current;
+            const remoteBranch = `origin/${localBranch}`;
+
+            const mergeBase = await git.raw(['merge-base', localBranch, remoteBranch]);
+            const mergeBaseTrimmed = mergeBase.trim();
+
+
+            const diffOutput = await git.diff([`${mergeBaseTrimmed}..${localBranch}`]);
+            const remoteDiffOutput = await git.diff([`${mergeBaseTrimmed}..${remoteBranch}`]);
+
+            if (!diffOutput) {
+              // 如果没有本地變化
+              return { conflict: false, message: 'No local differences found. Safe to push your formal file.' };
+            }
+
+            if (!remoteDiffOutput) {
+              // 如果没有遠端變化
+              return { conflict: false, message: 'No remote differences found. Safe to push your formal file.' };
+            }
+
+            const diffLines = diffOutput.split('\n');
+            const remoteDiffLines = remoteDiffOutput.split('\n');
+
+            const conflicts = diffLines.filter(line => remoteDiffLines.includes(line)).map(line => ({ line }));
+
+
+            if (conflicts.length > 0) {
+              // 如果有差異，返回詳細的差異訊息
+              return { conflict: true, conflicts };
+            } else {
+              return { conflict: false, message: 'No differences found. Safe to push your formal files.' };
+            }
+          } else {
+            // 實際執行 git push
+            await git.push(args);
+            return { message: 'Pushed to remote repository successfully.' };
+          }
+        } catch (diffError) {
+          if (diffError.message.includes(`Not a valid object name`)) {
+            return { conflict: true, message: `The remote branch does not exist. You may need to use <git push origin {branchName} --force> on formal files.` };
+          } else {
+            throw new Error(diffError.message);
+          }
+        }
+        break;
+
       // Add more cases as needed
       default:
         await git.raw([mainCommand, ...args]);
@@ -233,7 +285,7 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath }) => 
     return gitInfo;
   } catch (error) {
     console.error('Error executing git command:', error);
-    throw error;
+    throw new Error(error.message || 'Unknown error');
   }
 });
 
