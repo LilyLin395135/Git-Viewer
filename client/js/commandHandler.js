@@ -44,14 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (result.message) {
                         alert(result.message);
                     } else if (result.conflict) {
-                        const conflictLines = result.conflicts.map(conflict => conflict.line).filter(line => line.trim() !== '');
-                        if (conflictLines.length > 0) {
-                            alert('Conflicts detected:\n' + JSON.stringify(conflictLines, null, 2));
-                        } else {
-                            alert('No direct conflicts found, but there are differences. Please review.');
-                        }
-                    }
-                    else {
+                        alert('Conflicts detected:\n' + result.conflicts);
+                    } else {
                         console.log('Update git info', result);
                         drawGitGraph(result, 'preview-graph');
                     }
@@ -78,14 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     isPushCheckOnly = false;
                 }
 
-                // const isPushCheckOnly = !command.startsWith('git push');
-
-                // const gitInfo = await runAllCommand(command);
                 const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath, isPushCheckOnly });
                 if (result.message) {
                     alert(result.message);
-                }
-                else {
+                } else if (result.conflict) {
+                    alert('Conflicts detected:\n' + result.conflicts);
+                } else {
                     console.log(`Command executed: ${command}`);
                     drawGitGraph(result, 'formal-graph');
                 }

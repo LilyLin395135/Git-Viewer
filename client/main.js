@@ -227,31 +227,14 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
             const mergeBase = await git.raw(['merge-base', localBranch, remoteBranch]);
             const mergeBaseTrimmed = mergeBase.trim();
 
+            // 使用 merge-tree 比较
+            const mergeTreeOutput = await git.raw(['merge-tree', mergeBaseTrimmed, localBranch, remoteBranch]);
 
-            const diffOutput = await git.diff([`${mergeBaseTrimmed}..${localBranch}`]);
-            const remoteDiffOutput = await git.diff([`${mergeBaseTrimmed}..${remoteBranch}`]);
-
-            if (!diffOutput) {
-              // 如果没有本地變化
-              return { conflict: false, message: 'No local differences found. Safe to push your formal file.' };
-            }
-
-            if (!remoteDiffOutput) {
-              // 如果没有遠端變化
-              return { conflict: false, message: 'No remote differences found. Safe to push your formal file.' };
-            }
-
-            const diffLines = diffOutput.split('\n');
-            const remoteDiffLines = remoteDiffOutput.split('\n');
-
-            const conflicts = diffLines.filter(line => remoteDiffLines.includes(line)).map(line => ({ line }));
-
-
-            if (conflicts.length > 0) {
-              // 如果有差異，返回詳細的差異訊息
-              return { conflict: true, conflicts };
+            if (mergeTreeOutput.includes('<<<<<<<') || mergeTreeOutput.includes('=======') || mergeTreeOutput.includes('>>>>>>>')) {
+              // 如果有衝突，返回 merge-tree 的完整输出
+              return { conflict: true, conflicts: mergeTreeOutput };
             } else {
-              return { conflict: false, message: 'No differences found. Safe to push your formal files.' };
+              return { conflict: false, message: 'No direct conflicts found. Safe to push your formal files.' };
             }
           } else {
             // 實際執行 git push
@@ -261,12 +244,13 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         } catch (diffError) {
           if (diffError.message.includes(`Not a valid object name`)) {
             return { conflict: true, message: `The remote branch does not exist. You may need to use <git push origin {branchName} --force> on formal files.` };
+          } else if (diffError.message.includes('non-fast-forward')) {
+            return { conflict: true, message: 'Updates were rejected because the tip of your current branch is behind its remote counterpart. Use "git pull" to integrate the remote changes before pushing again.' };
           } else {
             throw new Error(diffError.message);
           }
         }
         break;
-
       // Add more cases as needed
       default:
         await git.raw([mainCommand, ...args]);
