@@ -147,7 +147,11 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   }
 });
 
+<<<<<<< HEAD
 ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = true }) => {
+=======
+ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = false }) => {
+>>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
   try {
     const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
@@ -227,6 +231,7 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
             const mergeBase = await git.raw(['merge-base', localBranch, remoteBranch]);
             const mergeBaseTrimmed = mergeBase.trim();
 
+<<<<<<< HEAD
             // 使用 merge-tree 比较
             const mergeTreeOutput = await git.raw(['merge-tree', mergeBaseTrimmed, localBranch, remoteBranch]);
 
@@ -235,6 +240,33 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
               return { conflict: true, conflicts: mergeTreeOutput };
             } else {
               return { conflict: false, message: 'No direct conflicts found. Safe to push your formal files.' };
+=======
+
+            const diffOutput = await git.diff([`${mergeBaseTrimmed}..${localBranch}`]);
+            const remoteDiffOutput = await git.diff([`${mergeBaseTrimmed}..${remoteBranch}`]);
+
+            if (!diffOutput) {
+              // 如果没有本地變化
+              return { conflict: false, message: 'No local differences found. Safe to push your formal file.' };
+            }
+
+            if (!remoteDiffOutput) {
+              // 如果没有遠端變化
+              return { conflict: false, message: 'No remote differences found. Safe to push your formal file.' };
+            }
+
+            const diffLines = diffOutput.split('\n');
+            const remoteDiffLines = remoteDiffOutput.split('\n');
+
+            const conflicts = diffLines.filter(line => remoteDiffLines.includes(line)).map(line => ({ line }));
+
+
+            if (conflicts.length > 0) {
+              // 如果有差異，返回詳細的差異訊息
+              return { conflict: true, conflicts };
+            } else {
+              return { conflict: false, message: 'No differences found. Safe to push your formal files.' };
+>>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
             }
           } else {
             // 實際執行 git push
@@ -244,13 +276,20 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         } catch (diffError) {
           if (diffError.message.includes(`Not a valid object name`)) {
             return { conflict: true, message: `The remote branch does not exist. You may need to use <git push origin {branchName} --force> on formal files.` };
+<<<<<<< HEAD
           } else if (diffError.message.includes('non-fast-forward')) {
             return { conflict: true, message: 'Updates were rejected because the tip of your current branch is behind its remote counterpart. Use "git pull" to integrate the remote changes before pushing again.' };
+=======
+>>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
           } else {
             throw new Error(diffError.message);
           }
         }
         break;
+<<<<<<< HEAD
+=======
+
+>>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
       // Add more cases as needed
       default:
         await git.raw([mainCommand, ...args]);
