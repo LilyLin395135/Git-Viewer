@@ -5,8 +5,8 @@ import validateResult from '../middleware/validatorHandler.js';
 
 const router = Router();
 
-router.post('/git/init', gitInitValidator, validateResult, initGit);
+router.post('/init', gitInitValidator, validateResult, initGit);
 
-router.get('/git/allBranchesInfo', gitGetBranchInfoValidator, validateResult, getGitBranchesInfo);
+router.get('/allBranchesInfo', gitGetBranchInfoValidator, validateResult, getGitBranchesInfo);
 
 export default router;

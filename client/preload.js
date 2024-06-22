@@ -13,6 +13,6 @@ contextBridge.exposeInMainWorld('electron', {
   showAlert: (message) => ipcRenderer.invoke('show-alert', message),
   executeGitCommand: (data) => ipcRenderer.invoke('execute-git-command', data),
   prepareTempGitFolder: (currentFolderPath) => ipcRenderer.invoke('prepare-temp-git-folder', currentFolderPath),
-  checkWorkflows: (event, folderPath) => ipcRenderer.invoke('check-workflows', { event, folderPath }),
-  triggerWorkflows: (event, folderPath) => ipcRenderer.invoke('trigger-workflows', { event, folderPath })
+  checkWorkflows: (commands, folderPath) => ipcRenderer.invoke('check-workflows', { commands, folderPath }),
+  triggerWorkflows: (triggerEvent, folderPath) => ipcRenderer.invoke('trigger-workflows', { triggerEvent, folderPath })
 });

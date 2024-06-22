@@ -3,7 +3,7 @@ const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
 let isPushCheckOnly = true;
 
-let commandExists = commandList.children.length > 0 ? true : false;
+let commandExists = commandList.children.length > 0 ;
 const updateRunAllButtonStatus = (folderPath, commandExists) => {
     if (!folderPath || !commandExists) {
         runAllButton.setAttribute('disabled', true);
@@ -67,14 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const triggerEvents = new Set();
 
             //檢查每個命令是否符合觸發點
-            for (const command of commands) {
-                if (command.startsWith('git')) {
-                    const [_, mainCommand] = command.split(' ');
-                    const triggerEvent = mainCommand.toLowerCase();
-                    const events = await window.electron.checkWorkflows(triggerEvent, currentFolderPath);
-                    events.forEach(event => triggerEvents.add(event));
-                }
-            }
+            const checkWorkflowsResult = await window.electron.checkWorkflows(commands, currentFolderPath);
+            checkWorkflowsResult.forEach(event => triggerEvents.add(event));
+            // for (const command of commands) {
+            //     if (command.startsWith('git')) {
+            //         const [_, mainCommand] = command.split(' ');
+            //         const triggerEvent = mainCommand.toLowerCase();
+            //         const events = await window.electron.checkWorkflows(triggerEvent, currentFolderPath);
+            //         events.forEach(event => triggerEvents.add(event));
+            //     }
+            // }
 
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];

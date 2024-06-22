@@ -5,7 +5,7 @@ import axios from 'axios';
 import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
-import { findGitRoot, checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
+import { findGitRoot } from './utils/gitActionRunner.js';
 import { db, createGitInfo, deleteGitInfo } from './database.js';
 
 // chrome debug tool
@@ -271,14 +271,30 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
   }
 });
 
-ipcMain.handle('check-workflows', (event, { event: triggerEvent, folderPath }) => {
-  const triggerEvents = checkWorkflows(triggerEvent, folderPath);
-  return triggerEvents;
+ipcMain.handle('check-workflows', async (event, { commands, folderPath }) => {
+  try {
+    const response = await axios.post('http://localhost:3000/api/workflow/check', {
+      commands,
+      folderPath
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error checking workflows:', error);
+    throw error;
+  }
 });
 
-ipcMain.handle('trigger-workflows', (event, { event: triggerEvent, folderPath }) => {
-  const results = triggerWorkflows(triggerEvent, folderPath);
-  return results;
+ipcMain.handle('trigger-workflows', async (event, { triggerEvent, folderPath }) => {
+  try {
+    const response = await axios.post('http://localhost:3000/api/workflow/trigger', {
+      event: triggerEvent,
+      folderPath
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error triggering workflows:', error);
+    throw error;
+  }
 });
 
 ipcMain.handle('create-git-info', async (event, gitInfo) => {
