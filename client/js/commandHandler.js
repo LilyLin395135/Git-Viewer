@@ -63,6 +63,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     runAllButton.addEventListener('click', async () => {
         try {
+            const commands = Array.from(commandList.children).map(li => li.textContent);
+            const triggerEvents = new Set();
+
+            //檢查每個命令是否符合觸發點
+            for (const command of commands) {
+                if (command.startsWith('git')) {
+                    const [_, mainCommand] = command.split(' ');
+                    const triggerEvent = mainCommand.toLowerCase();
+                    const events = await window.electron.checkWorkflows(triggerEvent, currentFolderPath);
+                    events.forEach(event => triggerEvents.add(event));
+                }
+            }
+
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];
                 const command = commandElement.textContent;
@@ -80,6 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     console.log(`Command executed: ${command}`);
                     drawGitGraph(result, 'formal-graph');
+                }
+
+                //如果命令符合觸發點，立即觸發工作流
+                if (command.startsWith('git')) {
+                    const [_, mainCommand] = command.split(' ');
+                    const triggerEvent = mainCommand.toLowerCase();
+                    if (triggerEvents.has(triggerEvent)) {
+                        const workflowResults = await window.electron.triggerWorkflows(triggerEvent, currentFolderPath);
+
+                        if (Array.isArray(workflowResults)) {
+                            const failureSteps = workflowResults.filter(result => result.status === 'failure');
+                            if (failureSteps.length > 0) {
+                                alert(`Step "${failureSteps[0].step}" failed: ${failureSteps[0].error}`);
+                                return;
+                            }
+                        } else if (workflowResults.message) {
+                            alert(workflowResults.message);
+                        }
+                    }
                 }
             }
             alert('All commands executed successfully!');

@@ -5,7 +5,7 @@ import axios from 'axios';
 import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
-import { checkIsGitManage } from './utils/checkIsGitManage.js';
+import { findGitRoot, checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { db, createGitInfo, deleteGitInfo } from './database.js';
 
 // chrome debug tool
@@ -16,7 +16,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const appDirectory = process.cwd(); // 當前工作資料夾
-
 let folderSelected = false; //在全域範圍內，才能在 openFolder.js 和 commandHandler.js 中都能被正確地存取和更新。
 
 function createWindow() {
@@ -49,7 +48,7 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
 });
 
 ipcMain.handle('init-git', async (event, folderPath) => {
-  const parentGitFolder = checkIsGitManage(path.dirname(folderPath));
+  const parentGitFolder = findGitRoot(path.dirname(folderPath));
   if (parentGitFolder) {
     const result = await dialog.showMessageBox({
       type: 'question',
@@ -101,10 +100,9 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
     }
     fse.mkdirSync(tempFolderPath, { recursive: true });
 
-    // 初始化 ignore 实例
+    // 初始化 ignore
     const ig = ignore();
 
-    // 遍历目录并递归读取 .gitignore 文件
     const addIgnoreFiles = (dir) => {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
@@ -120,7 +118,7 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
 
     addIgnoreFiles(sourceFolderPath);
 
-    // 递归地复制文件和目录，同时排除 .gitignore 中的文件
+    // 複製文件和目錄，同時排除 .gitignore 中的文件
     const copyFolderRecursive = async (source, target) => {
       const entries = fs.readdirSync(source, { withFileTypes: true });
       for (const entry of entries) {
@@ -147,11 +145,7 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
   }
 });
 
-<<<<<<< HEAD
 ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = true }) => {
-=======
-ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = false }) => {
->>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
   try {
     const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
@@ -231,7 +225,6 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
             const mergeBase = await git.raw(['merge-base', localBranch, remoteBranch]);
             const mergeBaseTrimmed = mergeBase.trim();
 
-<<<<<<< HEAD
             // 使用 merge-tree 比较
             const mergeTreeOutput = await git.raw(['merge-tree', mergeBaseTrimmed, localBranch, remoteBranch]);
 
@@ -240,33 +233,6 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
               return { conflict: true, conflicts: mergeTreeOutput };
             } else {
               return { conflict: false, message: 'No direct conflicts found. Safe to push your formal files.' };
-=======
-
-            const diffOutput = await git.diff([`${mergeBaseTrimmed}..${localBranch}`]);
-            const remoteDiffOutput = await git.diff([`${mergeBaseTrimmed}..${remoteBranch}`]);
-
-            if (!diffOutput) {
-              // 如果没有本地變化
-              return { conflict: false, message: 'No local differences found. Safe to push your formal file.' };
-            }
-
-            if (!remoteDiffOutput) {
-              // 如果没有遠端變化
-              return { conflict: false, message: 'No remote differences found. Safe to push your formal file.' };
-            }
-
-            const diffLines = diffOutput.split('\n');
-            const remoteDiffLines = remoteDiffOutput.split('\n');
-
-            const conflicts = diffLines.filter(line => remoteDiffLines.includes(line)).map(line => ({ line }));
-
-
-            if (conflicts.length > 0) {
-              // 如果有差異，返回詳細的差異訊息
-              return { conflict: true, conflicts };
-            } else {
-              return { conflict: false, message: 'No differences found. Safe to push your formal files.' };
->>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
             }
           } else {
             // 實際執行 git push
@@ -276,20 +242,13 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         } catch (diffError) {
           if (diffError.message.includes(`Not a valid object name`)) {
             return { conflict: true, message: `The remote branch does not exist. You may need to use <git push origin {branchName} --force> on formal files.` };
-<<<<<<< HEAD
           } else if (diffError.message.includes('non-fast-forward')) {
             return { conflict: true, message: 'Updates were rejected because the tip of your current branch is behind its remote counterpart. Use "git pull" to integrate the remote changes before pushing again.' };
-=======
->>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
           } else {
             throw new Error(diffError.message);
           }
         }
         break;
-<<<<<<< HEAD
-=======
-
->>>>>>> fc5fba0a23b7ceb0abb84e776eabf21b6ff1ab5c
       // Add more cases as needed
       default:
         await git.raw([mainCommand, ...args]);
@@ -310,6 +269,16 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
     console.error('Error executing git command:', error);
     throw new Error(error.message || 'Unknown error');
   }
+});
+
+ipcMain.handle('check-workflows', (event, { event: triggerEvent, folderPath }) => {
+  const triggerEvents = checkWorkflows(triggerEvent, folderPath);
+  return triggerEvents;
+});
+
+ipcMain.handle('trigger-workflows', (event, { event: triggerEvent, folderPath }) => {
+  const results = triggerWorkflows(triggerEvent, folderPath);
+  return results;
 });
 
 ipcMain.handle('create-git-info', async (event, gitInfo) => {

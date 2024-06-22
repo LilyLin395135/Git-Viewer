@@ -4,13 +4,15 @@ contextBridge.exposeInMainWorld('electron', {
   openFolder: () => ipcRenderer.invoke('open-folder'),
   initGit: (folderPath) => ipcRenderer.invoke('init-git', folderPath),
   getGitInfo: (folderPath) => ipcRenderer.invoke('get-git-info', folderPath),
-  createGitInfo:(gitInfo,callback)=>{
+  createGitInfo: (gitInfo, callback) => {
     ipcRenderer.invoke('create-git-info', gitInfo)
-    .then((id)=>callback(null,id))
-    .catch((err)=>callback(err))
+      .then((id) => callback(null, id))
+      .catch((err) => callback(err))
   },
-  deleteGitInfo:()=> ipcRenderer.invoke('delete-git-info'),
-  showAlert:(message)=>ipcRenderer.invoke('show-alert',message),
+  deleteGitInfo: () => ipcRenderer.invoke('delete-git-info'),
+  showAlert: (message) => ipcRenderer.invoke('show-alert', message),
   executeGitCommand: (data) => ipcRenderer.invoke('execute-git-command', data),
-  prepareTempGitFolder: (currentFolderPath) => ipcRenderer.invoke('prepare-temp-git-folder', currentFolderPath)
+  prepareTempGitFolder: (currentFolderPath) => ipcRenderer.invoke('prepare-temp-git-folder', currentFolderPath),
+  checkWorkflows: (event, folderPath) => ipcRenderer.invoke('check-workflows', { event, folderPath }),
+  triggerWorkflows: (event, folderPath) => ipcRenderer.invoke('trigger-workflows', { event, folderPath })
 });
