@@ -1,9 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import simpleGit from 'simple-git';
 import yaml from 'yaml';
 import { exec } from 'child_process';
-import secrets from '../models/db.json' assert { type: 'json' }; // 假设 secrets 存储在 db.json 文件中
+// import secrets from '../models/db.json' assert { type: 'json' }; // 假设 secrets 存储在 db.json 文件中
 
 const executeCommand = (command) => new Promise((resolve, reject) => {
   exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
@@ -41,7 +38,7 @@ export const triggerWorkflows = async (req, res) => {
                 return ''; // 忽略空行
               }
               return `
-              ${cmd.trim()} &&
+              ${cmd.trim().replace(/\\n/g, '\n')} &&
               if [ $? -ne 0 ]; then exit 1; fi
             `;
             }).filter(line => line.trim() !== '').join('\n');
