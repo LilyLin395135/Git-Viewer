@@ -1,5 +1,6 @@
 import yaml from 'yaml';
 import { exec } from 'child_process';
+import { getAllSecretsWithUserId } from '../models/secret.js';
 // import secrets from '../models/db.json' assert { type: 'json' }; // 假设 secrets 存储在 db.json 文件中
 
 const executeCommand = (command) => new Promise((resolve, reject) => {
@@ -15,10 +16,26 @@ const executeCommand = (command) => new Promise((resolve, reject) => {
   });
 });
 
+const replaceSecrets = (script, secrets) => {
+  let updatedScript = script;
+  secrets.forEach(secret => {
+    const placeholder = `\\$\\{secrets\\.${secret.name}\\}`;
+    const regex = new RegExp(placeholder, 'g');
+    if (secret.path) {
+      updatedScript = updatedScript.replace(regex, secret.path);
+    } else {
+      updatedScript = updatedScript.replace(regex, secret.value);
+    }
+  });
+  return updatedScript;
+};
+
 export const triggerWorkflows = async (req, res) => {
-  const { event, ymlContent, repoUrl } = req.body;
+  const { userId, event, ymlContent, repoUrl } = req.body;
 
   try {
+    const secrets = await getAllSecretsWithUserId(userId);
+
     let workflow = yaml.parse(ymlContent);
 
     // 確認 workflow 結構是否正確
@@ -29,11 +46,13 @@ export const triggerWorkflows = async (req, res) => {
     if (workflow.on && workflow.on[event]) {
       const jobs = Object.keys(workflow.jobs);
       let fullScript = '';
-      jobs.forEach(jobName => {
+      jobs.forEach((jobName) => {
         const { steps } = workflow.jobs[jobName];
         steps.forEach((step, index) => {
-          if (step.with && step.with.script) {
-            const scriptLines = step.with.script.split('\n').map(cmd => {
+          if (step.script) {
+            // 替换 script 中的 secrets
+            const scriptWithSecrets = replaceSecrets(step.script, secrets);
+            const scriptLines = scriptWithSecrets.split('\n').map((cmd) => {
               if (cmd.trim() === '') {
                 return ''; // 忽略空行
               }
@@ -41,15 +60,15 @@ export const triggerWorkflows = async (req, res) => {
               ${cmd.trim().replace(/\\n/g, '\n')} &&
               if [ $? -ne 0 ]; then exit 1; fi
             `;
-            }).filter(line => line.trim() !== '').join('\n');
+            }).filter((line) => line.trim() !== '').join('\n');
 
-            // 移除每個步驟之間多餘的空行
+            // 移除每个步骤之间多余的空行
             fullScript += `${scriptLines.trim()}\n`;
           }
         });
       });
 
-      const command = `ssh -i ${secrets.EC2_SSH_KEY_PATH} ${secrets.EC2_USERNAME}@${secrets.HOST_DNS} '${fullScript}'`;
+      const command = `${fullScript}`;
 
       console.log(`Executing command: ${command}`);
 
