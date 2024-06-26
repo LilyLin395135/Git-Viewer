@@ -1,7 +1,7 @@
 import yaml from 'yaml';
 import { exec } from 'child_process';
 import { getAllSecretsWithUserId } from '../models/secret.js';
-// import secrets from '../models/db.json' assert { type: 'json' }; // 假设 secrets 存储在 db.json 文件中
+// import secrets from '../models/db.json' assert { type: 'json' }; // 假设 secrets 存储在 db.json 文 件中
 
 const executeCommand = (command) => new Promise((resolve, reject) => {
   exec(command, { shell: '/bin/bash' }, (error, stdout, stderr) => {
@@ -18,7 +18,7 @@ const executeCommand = (command) => new Promise((resolve, reject) => {
 
 const replaceSecrets = (script, secrets) => {
   let updatedScript = script;
-  secrets.forEach(secret => {
+  secrets.forEach((secret) => {
     const placeholder = `\\$\\{secrets\\.${secret.name}\\}`;
     const regex = new RegExp(placeholder, 'g');
     if (secret.path) {
@@ -46,6 +46,9 @@ export const triggerWorkflows = async (req, res) => {
     if (workflow.on && workflow.on[event]) {
       const jobs = Object.keys(workflow.jobs);
       let fullScript = '';
+      // let sshContent = '';
+      // let otherContent = '';
+      
       jobs.forEach((jobName) => {
         const { steps } = workflow.jobs[jobName];
         steps.forEach((step, index) => {
@@ -68,7 +71,20 @@ export const triggerWorkflows = async (req, res) => {
         });
       });
 
-      const command = `${fullScript}`;
+      // 提取以 ssh 開頭的指令
+      const sshRegex = /^ssh\s.*?&&\n\s*if\s\[.*?\];\sthen\sexit\s1;\sfi/gms;
+      const sshMatch = fullScript.match(sshRegex);
+      let sshCommand = '';
+      if (sshMatch) {
+        sshCommand = sshMatch[0].trim();
+        fullScript = fullScript.replace(sshCommand, '').trim();
+      }
+
+      // 移除多餘的空行
+      fullScript = fullScript.split('\n').filter(line => line.trim() !== '').join('\n');
+
+      // 組合指令
+      const command = `${sshCommand}\n '${fullScript}'`;
 
       console.log(`Executing command: ${command}`);
 
