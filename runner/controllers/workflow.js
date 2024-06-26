@@ -45,49 +45,55 @@ export const triggerWorkflows = async (req, res) => {
 
     if (workflow.on && workflow.on[event]) {
       const jobs = Object.keys(workflow.jobs);
-      let fullScript = '';
-      // let sshContent = '';
-      // let otherContent = '';
-      
+      let sshCommand = '';
+      let otherCommands = [];
+
       jobs.forEach((jobName) => {
         const { steps } = workflow.jobs[jobName];
         steps.forEach((step, index) => {
           if (step.script) {
             // 替换 script 中的 secrets
             const scriptWithSecrets = replaceSecrets(step.script, secrets);
-            const scriptLines = scriptWithSecrets.split('\n').map((cmd) => {
-              if (cmd.trim() === '') {
-                return ''; // 忽略空行
+            scriptWithSecrets.split('\n').forEach((cmd) => {
+              if (cmd && cmd.trim()) {
+                if (cmd.trim().startsWith('ssh')) {
+                  sshCommand = cmd.trim().replace(/\\n/g, '\n');
+                } else {
+                  const fullCommand = `${cmd.trim().replace(/\\n/g, '\n')} && if [ $? -ne 0 ]; then exit 1; fi`;
+                  otherCommands.push(fullCommand);
+                }
               }
-              return `
-              ${cmd.trim().replace(/\\n/g, '\n')} &&
-              if [ $? -ne 0 ]; then exit 1; fi
-            `;
-            }).filter((line) => line.trim() !== '').join('\n');
-
-            // 移除每个步骤之间多余的空行
-            fullScript += `${scriptLines.trim()}\n`;
+            });
           }
         });
       });
 
+      const otherContent = otherCommands.join('\n');
+
       // 提取以 ssh 開頭的指令
-      const sshRegex = /^ssh\s.*?&&\n\s*if\s\[.*?\];\sthen\sexit\s1;\sfi/gms;
-      const sshMatch = fullScript.match(sshRegex);
-      let sshCommand = '';
-      if (sshMatch) {
-        sshCommand = sshMatch[0].trim();
-        fullScript = fullScript.replace(sshCommand, '').trim();
-      }
+      // const sshRegex = /^ssh\s.*?&&\n\s*if\s\[.*?\];\sthen\sexit\s1;\sfi/gms;
+      // const sshMatch = fullScript.match(sshRegex);
+      // let sshCommand = '';
+      // if (sshMatch) {
+      //   sshCommand = sshMatch[0].trim();
+      //   fullScript = fullScript.replace(sshCommand, '').trim();
+      // }
 
       // 移除多餘的空行
-      fullScript = fullScript.split('\n').filter(line => line.trim() !== '').join('\n');
+      // fullScript = fullScript.split('\n').filter(line => line.trim() !== '').join('\n');
+
+      // 確保 sshCommand 只有一個空格和單引號
+      // const sshCommandParts = sshCommand.split(' ');
+      // if (sshCommandParts.length > 1) {
+      //   const sshCommandFirstPart = sshCommandParts.slice(0, 2).join(' ');
+      //   const sshCommandRest = sshCommandParts.slice(2).join(' ').replace(/\s\s+/g, ' ');
+      //   sshCommand = `${sshCommandFirstPart} '${sshCommandRest}`;
+      // }
 
       // 組合指令
-      const command = `${sshCommand}\n '${fullScript}'`;
+      const command = sshCommand ? `${sshCommand} '${otherContent}'` : otherContent;
 
       console.log(`Executing command: ${command}`);
-
       try {
         const stdout = await executeCommand(command);
         console.log(`Command output: ${stdout}`);
