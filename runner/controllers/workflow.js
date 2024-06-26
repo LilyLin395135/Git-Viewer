@@ -22,7 +22,7 @@ const replaceSecrets = (script, secrets) => {
     const placeholder = `\\$\\{secrets\\.${secret.name}\\}`;
     const regex = new RegExp(placeholder, 'g');
     if (secret.path) {
-      updatedScript = updatedScript.replace(regex, secret.path);
+      updatedScript = updatedScript.replace(regex, `~/Git-Viewer/${secret.path}`);
     } else {
       updatedScript = updatedScript.replace(regex, secret.value);
     }
