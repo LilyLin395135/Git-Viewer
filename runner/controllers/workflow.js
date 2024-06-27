@@ -42,7 +42,7 @@ export const triggerWorkflows = async (req, res) => {
 
       // run DockerFile ，並傳入 secretsFilePath 和 ymlFilePath
       const dockerCommand = `
-      docker run --rm \
+      docker run --name temp_container -d \
       -v ${secretsFilePath}:/app/secret.json \
       -v ${ymlFilePath}:/app/workflow.yml \
       git-viewer-runner:latest
@@ -60,56 +60,3 @@ export const triggerWorkflows = async (req, res) => {
     res.status(500).json({ status: 'failure', error: error.message });
   }
 };
-
-// 確認 workflow 結構是否正確
-// if (Array.isArray(workflow)) {
-//   workflow = workflow[0];
-// }
-
-// if (workflow.on && workflow.on[event]) {
-//   const jobs = Object.keys(workflow.jobs);
-//   let sshCommand = '';
-//   let otherCommands = [];
-
-//   jobs.forEach((jobName) => {
-//     const { steps } = workflow.jobs[jobName];
-//     steps.forEach((step, index) => {
-//       if (step.script) {
-//         // 替换 script 中的 secrets
-//         const scriptWithSecrets = replaceSecrets(step.script, secrets);
-//         scriptWithSecrets.split('\n').forEach((cmd) => {
-//           if (cmd && cmd.trim()) {
-//             if (cmd.trim().startsWith('ssh')) {
-//               sshCommand = cmd.trim().replace(/\\n/g, '\n');
-//             } else {
-//               const fullCommand = `${cmd.trim().replace(/\\n/g, '\n')} && if [ $? -ne 0 ]; then exit 1; fi`;
-//               otherCommands.push(fullCommand);
-//             }
-//           }
-//         });
-//       }
-//     });
-//   });
-
-//   const otherContent = otherCommands.join('\n');
-
-//   // 組合指令
-//   const command = sshCommand ? `${sshCommand} '${otherContent}'` : otherContent;
-
-//   console.log(`Executing command: ${command}`);
-//   try {
-//     const stdout = await executeCommand(command);
-//     console.log(`Command output: ${stdout}`);
-//     res.json({ status: 'success', output: stdout });
-//   } catch (error) {
-//     console.error(`Error: ${error.message}`);
-//     res.status(500).json({ status: 'failure', error: error.message });
-//   }
-//     } else {
-//       res.status(400).json({ error: 'Event not found in workflow' });
-//     }
-//   } catch (error) {
-//     console.error(`Error parsing YAML: ${error.message}`);
-//     res.status(500).json({ status: 'failure', error: error.message });
-//   }
-// };

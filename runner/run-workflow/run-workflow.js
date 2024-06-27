@@ -43,6 +43,7 @@ const replaceSecrets = (script, secrets) => {
         fs.writeFileSync(pemFilePath, secret.value);
         fs.chmodSync(pemFilePath, 0o400);// 設置pem檔案只有本人能讀
         secret.value = pemFilePath;
+        console.log(`Created and set permissions for ${pemFilePath}`);
       }
     });
 
@@ -60,6 +61,7 @@ const replaceSecrets = (script, secrets) => {
             if (cmd && cmd.trim()) {
               if (cmd.trim().startsWith('ssh')) {
                 sshCommand = cmd.trim().replace(/\\n/g, '\n');
+                sshCommand = sshCommand.replace('ssh', 'ssh -o StrictHostKeyChecking=no');
               } else {
                 const fullCommand = `${cmd.trim().replace(/\\n/g, '\n')} && if [ $? -ne 0 ]; then exit 1; fi`;
                 otherCommands.push(fullCommand);
