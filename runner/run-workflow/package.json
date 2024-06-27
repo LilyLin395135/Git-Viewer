@@ -1,0 +1,20 @@
+{
+  "name": "git-viewer-runner",
+  "version": "1.0.0",
+  "main": "run-workflow.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon run-workflow.js",
+    "test": "jest tests/validationTests/secret.test.js",
+    "lint": "eslint ./"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "yaml": "^2.4.5"
+  }
+}

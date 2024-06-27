@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import yaml from 'yaml';
 import { exec } from 'child_process';
 
