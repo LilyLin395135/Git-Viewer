@@ -29,7 +29,7 @@ const replaceSecrets = (script, secrets) => {
 (async () => {
   try {
     // 讀取 secrets 和 ymlContent 檔案
-    const secrets = JSON.parse(fs.readFileSync('/app/secrets.json', 'utf8'));
+    const secrets = JSON.parse(fs.readFileSync('/app/secret.json', 'utf8'));
     const ymlContent = fs.readFileSync('/app/workflow.yml', 'utf8');
 
     let workflow = yaml.parse(ymlContent);
