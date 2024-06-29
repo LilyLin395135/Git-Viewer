@@ -4,8 +4,10 @@
 <head>
   <title>Git Viewer</title>
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
-  <link rel="stylesheet" type="text/css" href="style.css">
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
+  <link rel="stylesheet" type="text/css" href="stylesheet/style.css">
+  <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
+  <script defer src="./js/loadHeader.js"></script>
   <script src="./libs/d3.v6.min.js" defer></script>
   <script defer src="./js/openFolder.js"></script>
   <script defer src="./js/gitInitButton.js"></script>
@@ -14,6 +16,7 @@
 </head>
 
 <body>
+  <div id="header"></div>
   <div class="content">
     <div class="sidebar">
       <div style="display: flex; justify-content: space-between;">
@@ -25,8 +28,8 @@
         <textarea id="ai-input" placeholder="Placeholder"></textarea>
       </div>
       <div id="try-command" class="box">
-        <div>
-          <label for="command-input">Try Command</label>
+        <div class="box-header" style="display: flex; justify-content: space-between;">
+          <label for="command-input" class="center-label">Try Command</label>
           <button id="run-all" class="button">Run All</button>
         </div>
         <ul id="command-list"></ul>

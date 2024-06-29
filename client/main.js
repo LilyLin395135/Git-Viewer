@@ -26,9 +26,10 @@ function createWindow() {
       preload: path.join(appDirectory, 'dist/preload.js'),
       contextIsolation: true,
       enableRemoteModule: false
-    }
+    },
+    icon: path.join(appDirectory, 'assets', 'logo_GV_1.png') //應用程式logo
   });
-  mainWindow.loadFile(path.join(appDirectory, 'dist/index.html'));
+  mainWindow.loadFile(path.join(appDirectory, 'dist/git-viewer.html'));
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求

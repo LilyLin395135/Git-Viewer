@@ -5,6 +5,7 @@ import { resolve } from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
+  base: './', // 確保從當前工作目錄服務資源
   plugins: [
     electron({
       entry: 'main.js', // Electron 主入口檔案
@@ -29,7 +30,16 @@ export default defineConfig({
         { src: 'js/gitInitButton.js', dest: 'js' },
         { src: 'js/drawGitGraph.js', dest: 'js' },
         { src: 'js/commandHandler.js', dest: 'js' },
-        { src: 'libs/d3.v6.min.js', dest: 'libs' }
+        { src: 'js/secretHandler.js', dest: 'js' },
+        { src: 'libs/d3.v6.min.js', dest: 'libs' },
+        { src: 'js/loadHeader.js', dest: 'js' },
+        { src: 'header.html', dest: '' },
+        { src: 'stylesheet/header.css', dest: 'stylesheet' },
+        { src: 'stylesheet/style.css', dest: 'stylesheet' },
+        { src: 'settings.html', dest: '' },
+        { src: 'workflow.html', dest: '' },
+        { src: 'images/logo_word.png', dest: 'images' },
+        { src: 'assets/logo_GV_1.png', dest: 'assets' }
       ]
     })
   ],
@@ -38,7 +48,7 @@ export default defineConfig({
     sourcemap: true, // 啟用源映射
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
+        main: resolve(__dirname, 'git-viewer.html'),
       },
       output: {
         manualChunks: undefined

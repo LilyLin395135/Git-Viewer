@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Set Secrets</title>
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
+  <link rel="stylesheet" type="text/css" href="stylesheet/style.css">
+  <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
+  <script defer src="./js/loadHeader.js"></script>
+  <script defer src="./js/secretHandler.js"></script>
+</head>
+
+<body>
+  <div id="header"></div>
+  <div class="content">
+    <div class="sidebar">
+      <div id="workflow-secrets" class="box">
+        <div class="box-header" style="display: flex; justify-content: space-between;">
+          <label for="secrets-list" class="center-label">Workflow Secrets</label>
+          <button id="new-secret" class="button">New Secret</button>
+        </div>
+        <div id="secrets-list" class="box-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="secret-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-button" id="close-secret-modal">&times;</span>
+      <h2>New Secret</h2>
+      <label for="secret-name">Name</label>
+      <input type="text" id="secret-name" placeholder="YOUR_SECRET_NAME">
+      <label for="secret-value">Secret</label>
+      <textarea id="secret-value" rows="4" placeholder="SECRET_VALUE"></textarea>
+      <button id="add-secret-button" class="button">Add Secret</button>
+    </div>
+  </div>
+</body>
+
+</html>
