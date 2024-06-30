@@ -52,3 +52,21 @@ body, html {
     padding: 10px;
     border: 1px solid #ccc;
 }
+
+.workflow-summary {
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+}
+
+.workflow-log {
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    white-space: pre-wrap;  /* Respect formatting of log data */
+}
+
+.workflow-summary div, .workflow-log {
+    margin-bottom: 10px;
+}

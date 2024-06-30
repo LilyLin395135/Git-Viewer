@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const [_, mainCommand] = command.split(' ');
                     const triggerEvent = mainCommand.toLowerCase();
                     if (triggerEvents.has(triggerEvent)) {
-                        const workflowResults = await window.electron.triggerWorkflows(triggerEvent, currentFolderPath);
+                        const workflowResults = await window.electron.triggerWorkflows(triggerEvent, currentFolderPath); //+userId,+ymlContent,+repoUrl,+workflowFileName,+projectFolder,+commitHash,+commitMessage
 
                         if (Array.isArray(workflowResults)) {
                             const failureSteps = workflowResults.filter(result => result.status === 'failure');
