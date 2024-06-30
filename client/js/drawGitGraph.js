@@ -132,6 +132,15 @@ const drawGitGraph = (gitInfo, graphId) => {
 
   const graphContainer = document.querySelector(`#${graphId}`);
   graphContainer.scrollTop = graphContainer.scrollHeight;
+
+  // 繪製完畢後，將 SVG 內容轉換為字串並儲存
+  setTimeout(() => {
+    const svgElement = d3.select(`#${graphId} svg`);
+    if (svgElement.node()) {
+      const svgHtml = svgElement.node().outerHTML;
+      localStorage.setItem(`graphContent_${graphId}`, svgHtml);
+    }
+  }, 0);
 };
 
 const parseGitInfo = (gitInfo) => {
@@ -181,4 +190,12 @@ const parseGitInfo = (gitInfo) => {
   });
 
   return { nodes, links, untrackedChanges, notStagedChanges, stagedChanges, nodeRadius, nodeSpacing, x1, x2 };
+};
+
+const loadGraphFromLocalStorage = (graphId) => {
+  const storedSvgHtml = localStorage.getItem(`graphContent_${graphId}`);
+  if (storedSvgHtml) {
+    const container = document.getElementById(graphId);
+    container.innerHTML = storedSvgHtml;
+  }
 };

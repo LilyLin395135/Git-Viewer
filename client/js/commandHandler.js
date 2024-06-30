@@ -1,19 +1,41 @@
 const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
-let isPushCheckOnly = true;
 
-let commandExists = commandList.children.length > 0 ;
-const updateRunAllButtonStatus = (folderPath, commandExists) => {
-    if (!folderPath || !commandExists) {
-        runAllButton.setAttribute('disabled', true);
-    } else {
+let isPushCheckOnly = true;
+let commandExists = commandList.children.length > 0;
+
+const updateRunAllButtonStatus = () => {
+    if (commandList.children.length > 0) {
         runAllButton.removeAttribute('disabled');
+    } else {
+        runAllButton.setAttribute('disabled', true);
     }
 };
-updateRunAllButtonStatus(currentFolderPath, commandExists);
+
+const loadCommands = () => {
+    const commands = JSON.parse(localStorage.getItem('commands') || '[]');
+    commands.forEach(cmd => {
+        const listItem = document.createElement('li');
+        listItem.textContent = cmd;
+        commandList.appendChild(listItem);
+    });
+    commandInput.value = localStorage.getItem('currentCommand') || '';
+    updateRunAllButtonStatus();
+};
+
+const saveCommands = () => {
+    const commands = Array.from(commandList.querySelectorAll('li')).map(li => li.textContent);
+    localStorage.setItem('commands', JSON.stringify(commands));
+    localStorage.setItem('currentCommand', commandInput.value);
+};
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadCommands();
+
+    commandInput.addEventListener('input', () => {
+        localStorage.setItem('currentCommand', commandInput.value);
+    });
 
     commandInput.addEventListener('keydown', async (event) => {
         if (event.key === 'Enter') {
@@ -36,8 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 listItem.textContent = command;
                 commandList.appendChild(listItem);
                 commandInput.value = '';
+                saveCommands();
                 commandExists = true;
-                updateRunAllButtonStatus(currentFolderPath, commandExists);
+                updateRunAllButtonStatus();
 
                 try {
                     const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
@@ -115,11 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             updateRunAllButtonStatus();
         }
+        localStorage.removeItem('commands');
+        // localStorage.removeItem('currentCommand');
+        clearCommandList();
     });
 });
 
 function clearCommandList() {
     while (commandList.firstChild) {
         commandList.removeChild(commandList.firstChild);
-    };
-};
+    }
+    updateRunAllButtonStatus();
+}
