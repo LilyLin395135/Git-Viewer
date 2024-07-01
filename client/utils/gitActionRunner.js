@@ -1,8 +1,8 @@
-// import fs from 'fs';
-// import path from 'path';
-// import simpleGit from 'simple-git';
-// import yml from 'yaml';
-// import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import simpleGit from 'simple-git';
+import yml from 'yaml';
+import { exec } from 'child_process';
 
 export const findGitRoot = (folderPath) => {
   while (folderPath) {
@@ -16,21 +16,30 @@ export const findGitRoot = (folderPath) => {
   return null;
 };
 
-// export const findYmlFiles = (dir) => {
-//   let yamlFiles = [];
-//   fs.readdirSync(dir).forEach(file => {
-//     const fullPath = path.join(dir, file);
-//     if (fs.statSync(fullPath).isDirectory()) {
-//       // 排除 node_modules 目录
-//       if (file !== 'node_modules') {
-//         yamlFiles = yamlFiles.concat(findYmlFiles(fullPath));
-//       }
-//     } else if (file.endsWith('.yml') || file.endsWith('.yaml')) {
-//       yamlFiles.push(fullPath);
-//     }
-//   });
-//   return yamlFiles;
-// };
+const findYmlFiles = (dir) => {
+  const gitViewerDir = path.join(dir, '.gitviewer');
+  const yamlFiles = [];
+
+  if (fs.existsSync(gitViewerDir) && fs.statSync(gitViewerDir).isDirectory()) {
+    fs.readdirSync(gitViewerDir).forEach((file) => {
+      const fullPath = path.join(gitViewerDir, file);
+      if (fs.statSync(fullPath).isFile() && (file.endsWith('.yml') || file.endsWith('.yaml'))) {
+        yamlFiles.push(fullPath);
+      }
+    });
+  }
+  return yamlFiles;
+};
+
+const getRepositoryUrl = (dir) => {
+  const gitConfigPath = path.join(dir, '.git/config');
+  if (fs.existsSync(gitConfigPath)) {
+    const gitConfig = fs.readFileSync(gitConfigPath, 'utf8');
+    const match = gitConfig.match(/url = (.+)/);
+    return match ? match[1] : null;
+  }
+  return null;
+};
 
 // export const executeCommand = (command) => {
 //   return new Promise((resolve, reject) => {
@@ -47,57 +56,64 @@ export const findGitRoot = (folderPath) => {
 //   });
 // };
 
-// export const checkWorkflows = (event,folderPath)=>{
-//   const git = simpleGit(folderPath);
-//   const rootDir = findGitRoot(folderPath);
-//   const yamlFiles = findYmlFiles(rootDir);
+export const checkWorkflows = async ({commands, folderPath})=>{
+  const git = simpleGit(folderPath);
+  const currentBranch = (await git.status()).current;
+  const rootDir = findGitRoot(folderPath);
+  const yamlFiles = findYmlFiles(rootDir);
 
-//   const triggerEvents=[];
+  const eventsTriggered=new Set();
+  const commandEvents = commands.map((command) => {
+    const [_, mainCommand] = command.split(' ');
+    return mainCommand.toLowerCase();
+  });
   
-//   yamlFiles.forEach(file=>{
-//     const workflow = yml.parse(fs.readFileSync(file, 'utf8'));
-//     if(workflow.on && workflow.on[event]){
-//       triggerEvents.push(event);
-//     }
-//   });
-//   return triggerEvents;
-// };
+  yamlFiles.forEach(file=>{
+    const workflow = yml.parse(fs.readFileSync(file, 'utf8'));
+    commandEvents.forEach((event)=>{
+      if(workflow.on &&
+        workflow.on[event] &&
+        workflow.on[event].branches.includes(currentBranch)){
+        eventsTriggered.add(event);
+      }
+    });
+  });
+  return Array.from(eventsTriggered);
+};
 
-// export const triggerWorkflows = async (event, folderPath) => {
-//   const git = simpleGit(folderPath);
-//   const currentBranch = (await (git.status())).current;
-//   const rootDir = findGitRoot(folderPath);
-//   const yamlFiles = findYmlFiles(rootDir);
+export const triggerWorkflows = async (eventTriggered, folderPath) => {
+  const git = simpleGit(folderPath);
+  const currentBranch = (await (git.status())).current;
+  const rootDir = findGitRoot(folderPath);
+  const yamlFiles = findYmlFiles(rootDir);
 
-//   const results =[];
+  const repositoryUrl = getRepositoryUrl(rootDir);
+  if (!repositoryUrl) {
+    throw new Error('Repository URL not found.');
+  }
 
-//   await Promise.all(yamlFiles.map(async (file) => {
-//     const workflow = yml.parse(fs.readFileSync(file, 'utf8'));
-//     if (workflow.on && workflow.on[event] && workflow.on[event].branches.includes(currentBranch)) {
-//       console.log(`Triggering workflow from ${file}`);
-//       const jobs = Object.keys(workflow.jobs);
-      
-//       await Promise.all(jobs.map(async (jobName) => {
-//         const steps = workflow.jobs[jobName].steps;
-        
-//         for (const step of steps) {
-//           if (step.run) {
-//             try {
-//               await executeCommand(step.run);
-//               results.push({ step: step.name, status: 'success' });
-//             } catch (error) {
-//               results.push({ step: step.name, status: 'failure', error: error.message });
-//               throw new Error(`Step "${step.name}" failed: ${error.message}`);
-//             }
-//           }
-//         }
-//       }));
-//     }
-//   }));
+  const results =[];
 
-//   if (results.some(result => result.status === 'failure')) {
-//     return results.filter(result => result.status === 'failure');
-//   } else {
-//     return results;
-//   }
-// };
+  yamlFiles.forEach((file) => {
+    const workflow = yml.parse(fs.readFileSync(file, 'utf8'));
+    if (workflow.on && workflow.on[eventTriggered] && workflow.on[eventTriggered].branches.includes(currentBranch)) {
+      console.log(`Triggering workflow from ${file}`);
+      results.push(workflow);
+    }
+  });
+
+  const ymlContent = yml.stringify(results);
+  const workflowFileName = path.basename(yamlFiles[0]);
+  const projectFolder = path.basename(rootDir);
+  const commitHash = (await git.revparse(['HEAD'])).trim();
+  const commitMessage = (await git.log(['-1'])).latest.message;
+
+  return {
+    ymlContent,
+    repositoryUrl,
+    workflowFileName,
+    projectFolder,
+    commitHash,
+    commitMessage
+  };
+};

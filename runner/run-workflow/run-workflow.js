@@ -79,7 +79,6 @@ const replaceSecrets = (script, secrets) => {
     console.log(`Executing command: ${command}`);
     const stdout = await executeCommand(command);
     console.log(`Command output: ${stdout}`);
-    res.json({ status: 'success', output: stdout });
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);

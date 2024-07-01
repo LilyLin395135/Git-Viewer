@@ -8,25 +8,24 @@ body, html {
     display: flex;
     width: 100%;
     height: 100vh;
-    padding-top: 50px; /* Adjust based on header height */
+    padding-top: 50px;
 }
 
 .sidebar {
     width: 250px;
     background-color: #f0f0f0;
     overflow-y: auto;
-    height: calc(100% - 50px); /* Adjust height based on header */
+    height: calc(100% - 50px);
     position: fixed;
 }
 
 .content {
-    margin-left: 250px; /* Adjust based on sidebar width */
+    margin-left: 250px;
     padding: 20px;
     overflow-y: scroll;
-    height: calc(100vh - 50px); /* Full height minus header */
+    height: calc(100vh - 50px);
 }
 
-/* Additional styles for interaction */
 .sidebar ul {
     list-style: none;
     padding: 0;
@@ -41,7 +40,12 @@ body, html {
     background-color: #ddd;
 }
 
-/* Content styles */
+.project-folder {
+    font-weight: bold;
+    background-color: #e9ecef;
+    cursor: pointer;
+}
+
 .workflow-list {
     display: flex;
     flex-direction: column;
@@ -64,9 +68,5 @@ body, html {
     padding: 20px;
     background-color: #fff;
     border: 1px solid #ccc;
-    white-space: pre-wrap;  /* Respect formatting of log data */
-}
-
-.workflow-summary div, .workflow-log {
-    margin-bottom: 10px;
+    white-space: pre-wrap;
 }

@@ -1,8 +1,10 @@
 const userId = 1;
+let lastActiveProjectId = null;  // 記住上次展開的project folder
+let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
 document.addEventListener('DOMContentLoaded', function() {
     loadSideBar();
-    loadWorkflowList();
+    loadWorkflowList(lastActiveWorkflowName || 'All Workflows', lastActiveProjectId); // Load workflows based on last active state
 });
 
 async function loadSideBar() {
@@ -10,21 +12,33 @@ async function loadSideBar() {
     try {
         const response = await fetch(`http://localhost:3001/api/workflow/user/${userId}`);
         const workflows = await response.json();
-        const workflowNames = new Set(workflows.map(workflow => workflow.workflow_name));
-        let listHtml = '<ul><li class="active" data-name="All Workflows">All Workflows</li>';
+        const projects = groupWorkflowsByProject(workflows);
+        let listHtml = '<ul>';
 
-        workflowNames.forEach(name => {
-            listHtml += `<li data-name="${name}">${name}</li>`;
-        });
+        for (const [projectId, details] of Object.entries(projects)) {
+            const isLastActive = lastActiveProjectId === projectId;
+            listHtml += `
+                <li class="project-folder" onclick="toggleWorkflows(this, '${projectId}')">
+                    <span>${details.projectFolder}</span>
+                </li>
+                <div class="workflow-names" style="${isLastActive ? 'display: block;' : 'display: none;'}">`;
+            listHtml += `<li data-name="All Workflows" data-project="${projectId}" class="${!lastActiveWorkflowName && isLastActive ? 'active' : ''}">All Workflows</li>`;
+            details.uniqueWorkflowNames.forEach(name => {
+                listHtml += `<li data-name="${name}" data-project="${projectId}" class="${name === lastActiveWorkflowName && isLastActive ? 'active' : ''}" style="margin-left: 20px;">${name}</li>`;
+            });
+            listHtml += `</div>`;
+        }
 
         listHtml += '</ul>';
         sidebar.innerHTML = listHtml;
 
-        sidebar.querySelectorAll('li').forEach(item => {
+        sidebar.querySelectorAll('li[data-name]').forEach(item => {
             item.addEventListener('click', function() {
                 document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
                 this.classList.add('active');
-                loadWorkflowList(this.dataset.name);
+                lastActiveWorkflowName = this.dataset.name;
+                lastActiveProjectId = this.dataset.project;
+                loadWorkflowList(this.dataset.name, this.dataset.project);
             });
         });
     } catch (error) {
@@ -33,26 +47,46 @@ async function loadSideBar() {
     }
 }
 
-async function loadWorkflowList(workflowName = 'All Workflows') {
+function toggleWorkflows(element, projectId) {
+    const workflowNames = element.nextElementSibling;
+    workflowNames.style.display = workflowNames.style.display === 'none' ? 'block' : 'none';
+    lastActiveProjectId = workflowNames.style.display === 'block' ? projectId : null;
+}
+
+function groupWorkflowsByProject(workflows) {
+    const projects = {};
+    workflows.forEach(workflow => {
+        if (!projects[workflow.project_id]) {
+            projects[workflow.project_id] = { projectFolder: workflow.project_folder, workflows: [], uniqueWorkflowNames: new Set() };
+        }
+        projects[workflow.project_id].workflows.push(workflow);
+        projects[workflow.project_id].uniqueWorkflowNames.add(workflow.workflow_name);
+    });
+    return projects;
+}
+
+async function loadWorkflowList(workflowName = 'All Workflows', projectId = null) {
     const content = document.querySelector('.content');
     try {
         const response = await fetch(`http://localhost:3001/api/workflow/user/${userId}`);
         const data = await response.json();
-        displayWorkflows(data, workflowName, content);
+        let filteredWorkflows = data;
+        if (projectId) {
+            filteredWorkflows = filteredWorkflows.filter(workflow => workflow.project_id.toString() === projectId);
+        }
+        if (workflowName !== 'All Workflows') {
+            filteredWorkflows = filteredWorkflows.filter(workflow => workflow.workflow_name === workflowName);
+        }
+        displayWorkflows(filteredWorkflows, content);
     } catch (error) {
         console.error('Failed to fetch workflows:', error);
         content.innerHTML = '<p>Error loading workflows.</p>';
     }
 }
 
-function displayWorkflows(workflows, workflowName, content) {
-    let filteredWorkflows = workflows;
-    if (workflowName !== 'All Workflows') {
-        filteredWorkflows = workflows.filter(workflow => workflow.workflow_name === workflowName);
-    }
-
+function displayWorkflows(workflows, content) {
     let listHtml = '<div class="workflow-list">';
-    for (const workflow of filteredWorkflows) {
+    workflows.forEach(workflow => {
         listHtml += `
             <div class="workflow-item" id="workflow-${workflow.id}">
                 <span class="workflow-status">${getStatusIcon(workflow.status)}</span>
@@ -67,7 +101,7 @@ function displayWorkflows(workflows, workflowName, content) {
                     <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
                 </div>
             </div>`;
-    }
+    });
     listHtml += '</div>';
     content.innerHTML = listHtml;
 }

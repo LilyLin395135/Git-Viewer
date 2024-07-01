@@ -1,6 +1,7 @@
 const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
+const userId = 1;
 
 let isPushCheckOnly = true;
 let commandExists = commandList.children.length > 0;
@@ -87,11 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
     runAllButton.addEventListener('click', async () => {
         try {
             const commands = Array.from(commandList.children).map(li => li.textContent);
-            const triggerEvents = new Set();
+            // const triggerEvents = new Set();
 
             //檢查每個命令是否符合觸發點
-            const checkWorkflowsResult = await window.electron.checkWorkflows(commands, currentFolderPath);
-            checkWorkflowsResult.forEach(event => triggerEvents.add(event));
+            const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
+            // const checkWorkflowsResult = await window.electron.checkWorkflows(commands, currentFolderPath);
+            // checkWorkflowsResult.forEach(event => triggerEvents.add(event));
 
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];
@@ -115,9 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 //如果命令符合觸發點，立即觸發工作流
                 if (command.startsWith('git')) {
                     const [_, mainCommand] = command.split(' ');
-                    const triggerEvent = mainCommand.toLowerCase();
-                    if (triggerEvents.has(triggerEvent)) {
-                        const workflowResults = await window.electron.triggerWorkflows(triggerEvent, currentFolderPath); //+userId,+ymlContent,+repoUrl,+workflowFileName,+projectFolder,+commitHash,+commitMessage
+                    const eventTriggered = mainCommand.toLowerCase();
+                    if (eventsTriggered.has(eventTriggered)) {
+                        const workflowResults = await window.electron.triggerWorkflows(userId, eventTriggered, currentFolderPath);
 
                         if (Array.isArray(workflowResults)) {
                             const failureSteps = workflowResults.filter(result => result.status === 'failure');

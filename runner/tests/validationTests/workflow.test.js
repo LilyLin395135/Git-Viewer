@@ -27,3 +27,14 @@ describe('Trigger workflow to CICD', () => {
     expect(response.body.errors[0].msg).toBe('repoUrl is required');
   });
 });
+
+describe('Get workflow docker logs', () => {
+  // Test case 1: containerName not exist is invalid
+  it('containerName is required', async () => {
+    const response = await request(app)
+      .get('/api/workflow/logs/temp_container_1')
+      .send({});
+    expect(response.status).toBe(400);
+    expect(response.body.errors[0].msg).toBe('containerName is required');
+  });
+});
