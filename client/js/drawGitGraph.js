@@ -51,7 +51,7 @@ const drawGitGraph = (gitInfo, graphId) => {
   nodeGroups.append('circle')
     .attr('r', nodeRadius)
     .attr('fill', d => d.isMainLine ? '#66B3FF' : '#FF9797')
-    .attr('stroke', d => d.isMainLine ? '#ECF5FF' : '#FFECEC')
+    .attr('stroke', d => d.isMainLine ? '#0066CC' : '#FF2D2D')
     .attr('stroke-width', 6)
     .on('mouseover', function (event, d) {
       const tooltip = d3.select(`#${graphId}`)
@@ -108,7 +108,7 @@ const drawGitGraph = (gitInfo, graphId) => {
     group.append('circle')
       .attr('r', nodeRadius)
       .attr('fill', 'none')
-      .attr('stroke', '#ECF5FF')
+      .attr('stroke', '#0066CC')
       .attr('stroke-dasharray', node.type === 'untracked' ? '5,5' : 'none')
       .attr('stroke-width', 6);
 

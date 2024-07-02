@@ -40,7 +40,7 @@ export default defineConfig({
         { src: 'stylesheet/workflow.css', dest: 'stylesheet' },
         { src: 'settings.html', dest: '' },
         { src: 'workflow.html', dest: '' },
-        { src: 'images/logo_word.png', dest: 'images' },
+        { src: 'assets/logo_word.png', dest: 'assets' },
         { src: 'assets/logo_GV_1.png', dest: 'assets' }
       ]
     })

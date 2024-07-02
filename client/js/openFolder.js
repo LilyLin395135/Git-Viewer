@@ -6,7 +6,7 @@ let tempFolderPath = localStorage.getItem('tempFolderPath') || '';
 document.addEventListener('DOMContentLoaded', () => {
   if (currentFolderPath && tempFolderPath) {
     folderSelected = true;
-    updateInitButtonStatus(gitInitButton, currentFolderPath, true);
+    updateInitButtonStatus(currentFolderPath, true);
     loadGraphFromLocalStorage('formal-graph');
     loadGraphFromLocalStorage('preview-graph');
   }
@@ -34,7 +34,7 @@ document.getElementById('open-folder').addEventListener('click', async () => {
       clearCommandList();
       clearGraph('formal-graph');
       clearGraph('preview-graph');
-      updateInitButtonStatus(gitInitButton, currentFolderPath, result.gitExists);
+      updateInitButtonStatus(currentFolderPath, result.gitExists);
 
       if(!result.gitExists){
         return;

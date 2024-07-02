@@ -1,12 +1,13 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
-import path, { resolve } from 'path';
+import path from 'path';
 import fs from 'fs';
 import axios from 'axios';
 import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
-import { findGitRoot, checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
-import { db, createGitInfo, deleteGitInfo } from './database.js';
+import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
+import { initGit, getGitInfo } from './utils/gitInfo.js'
+import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -52,47 +53,15 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
   return null;
 });
 
-ipcMain.handle('init-git', async (event, folderPath) => {
-  const parentGitFolder = findGitRoot(path.dirname(folderPath));
-  if (parentGitFolder) {
-    const result = await dialog.showMessageBox({
-      type: 'question',
-      buttons: ['Yes', 'No'],
-      defaultId: 1,
-      title: 'Confirm',
-      message: `The parent folder ${parentGitFolder} is already a git repository. Do you still want to run git init?`
-    });
+ipcMain.handle('init-git', initGit);
 
-    if (result.response === 1) {
-      return { status: 'cancelled' };
-    }
-  }
-
+ipcMain.handle('get-git-info', async (event, folderPath) => {
   try {
-    const response = await axios.post('http://localhost:3000/api/git/init', { folderPath });
-    return response.data;
-  } catch (error) {
-    const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
-    throw new Error(errorMessage);
-  }
-});
-
-async function getGitInfo(folderPath) {
-  try {
-    const response = await axios.get(`http://localhost:3000/api/git/allBranchesInfo?folderPath=${folderPath}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching git info:', error);
-    throw error;
-  }
-}
-
-ipcMain.handle('get-git-info', async (event, repoPath) => {
-  try {
-    const gitInfo = await getGitInfo(repoPath);
+    const gitInfo = await getGitInfo(folderPath);
     return gitInfo;
   } catch (error) {
-    return { error: error.response?.data?.error || error.message };
+    console.error('Error in get-git-info:', error);
+    return { error: error.message || 'Unknown error' };
   }
 });
 

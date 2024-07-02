@@ -22,7 +22,7 @@ body, html {
 .content {
     margin-left: 250px;
     padding: 20px;
-    overflow-y: scroll;
+    /* overflow-y: scroll; */
     height: calc(100vh - 50px);
 }
 
