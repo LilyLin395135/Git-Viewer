@@ -1,6 +1,7 @@
 const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
+const URL = 'http://52.5.238.48';
 const userId = 1;
 
 let isPushCheckOnly = true;
@@ -52,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (command.startsWith('git ')) {
 
                 if (command.startsWith('git push')) {
-                    const confirmPush = confirm('We will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
+                    const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
                     if (!confirmPush) return;
                 }
                 const listItem = document.createElement('li');
@@ -130,6 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         } else if (workflowResults.message) {
                             alert(workflowResults.message);
                         }
+                        if (workflowResults.workflowId) {
+                            startPolling(workflowResults.workflowId);
+                        }
                     }
                 }
             }
@@ -151,4 +155,42 @@ function clearCommandList() {
         commandList.removeChild(commandList.firstChild);
     }
     updateRunAllButtonStatus();
+}
+
+// 開始輪詢工作流狀態
+function startPolling(workflowId) {
+    const intervalId = setInterval(async () => {
+        const response = await fetch(`${URL}/api/workflow/workflow/${workflowId}`);
+        const workflow = await response.json();
+        
+        if (workflow.status === 1) {
+            console.log("Starting the workflow");
+        } else if (workflow.status === 2 || workflow.status === 4) {
+            clearInterval(intervalId);  // 停止輪詢
+            const statusMessage = "Workflow executed successfully.";
+            console.log(statusMessage);
+
+            // 彈出提示並詢問用戶是否要導航到日誌頁面
+            if (confirm(`${statusMessage} Would you like to view the log?`)) {
+                goToLogPage(workflowId);
+            }
+        } else if (workflow.status === 3 || workflow.status === 5) {
+            clearInterval(intervalId);  // 停止輪詢
+            const statusMessage = "Workflow execution failed.";
+            console.log(statusMessage);
+
+            // 彈出提示並詢問用戶是否要導航到日誌頁面
+            if (confirm(`${statusMessage} Would you like to view the log?`)) {
+                goToLogPage(workflowId);
+            }
+        }
+    }, 1000); // 每秒輪詢一次
+}
+
+// 導航到日誌頁面
+function goToLogPage(workflowId) {
+    // Electron的分頁跳轉，如果在web環境中，則使用location.href
+    // 假設您有一個指向日誌頁面的路由設定
+    window.location.href = `workflow.html?workflowId=${workflowId}`;
+    // 如果在 Electron 中，您可能需要使用 Electron 的 shell 或 IPC 通信來處理路由跳轉
 }

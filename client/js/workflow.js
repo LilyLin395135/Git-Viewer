@@ -4,9 +4,20 @@ let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadSideBar();
-    loadWorkflowList(lastActiveWorkflowName || 'All Workflows', lastActiveProjectId); // Load workflows based on last active state
+    const urlParams = new URLSearchParams(window.location.search);
+    const workflowId = urlParams.get('workflowId');
+    
+    if (workflowId) {
+        fetchWorkflowDetails(workflowId);  // Fetch details if workflowId is present
+    } else {
+        loadSideBar();
+        loadWorkflowList(lastActiveWorkflowName || 'All Workflows', lastActiveProjectId);
+    }
 });
+
+function fetchWorkflowDetails(workflowId) {
+    showLog(workflowId);
+}
 
 async function loadSideBar() {
     const sidebar = document.querySelector('.sidebar');
@@ -118,40 +129,6 @@ function getStatusIcon(status) {
         default: return 'Unknown';
     }
 }
-
-// function showLog(workflowId) {
-//     fetch(`${URL}/api/workflow/workflow/${workflowId}`)  // Adjust URL as necessary
-//         .then(response => response.json())
-//         .then(workflow => {
-//             const sidebar = document.querySelector('.sidebar');
-//             sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflowId})">Back to Workflows</li></ul>`;
-
-//             const content = document.querySelector('.content');
-//             content.innerHTML = `
-//                 <div class="workflow-summary">
-//                     <div>
-//                         <span>${daysAgo(workflow.start_queue_time)} days ago</span>
-//                         <span>Action: ${workflow.action}, Branch: ${workflow.branch}</span>
-//                     </div>
-//                     <div>
-//                         <span>Status: ${getStatusIcon(workflow.status)}</span>
-//                     </div>
-//                     <div>
-//                         <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
-//                     </div>
-//                     <div>
-//                         <span>Execution Time: ${calculateDuration(workflow.start_execute_time, workflow.finish_execute_time)}</span>
-//                     </div>
-//                 </div>
-//                 <div class="workflow-log">
-//                     <pre>${workflow.log}</pre>
-//                 </div>
-//             `;
-//         })
-//         .catch(error => {
-//             console.error('Failed to fetch workflow details:', error);
-//         });
-// }
 
 function showLog(workflowId) {
     // 先取得當前的workflow狀態，以决定是否開始輪詢

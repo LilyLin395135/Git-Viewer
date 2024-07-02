@@ -88,7 +88,7 @@ export const triggerWorkflows = async (req, res) => {
         workflowData: { ...workflowData, id: workflowId }
       });
 
-      res.status(200).json({ message: 'Workflow enqueued successfully.' });
+      res.status(200).json({ message: 'Workflow enqueued successfully.', workflowId });
     } else {
       res.status(400).json({ error: `Event '${event}' not found in workflow` });
     }
