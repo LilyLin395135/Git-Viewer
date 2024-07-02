@@ -1,9 +1,40 @@
+import mysql from 'mysql2';
+import dotenv from 'dotenv';
 import { dequeueTask } from './queue.js';
 import { executeCommand } from '../controllers/workflow.js';
-import { updateWorkflow } from '../models/workflow.js';
+// import { updateWorkflow } from '../models/workflow.js';
 import { STATUS } from '../constants/statusCode.js';
 import { getTaipeiTime } from '../utils/getTime.js';
 import { handleContainerCompletion } from '../utils/containerHandler.js';
+
+dotenv.config();
+
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+}).promise();
+
+async function updateWorkflow(id, updateData) {
+  // Prepare SQL statement parts
+  const keys = Object.keys(updateData);
+  const values = Object.values(updateData);
+
+  // Construct SET part of the SQL query dynamically
+  const setClause = keys.map((key) => `${key} = ?`).join(', ');
+
+  const query = `UPDATE workflow SET ${setClause} WHERE id = ?`;
+
+  try {
+    // Spread the values and append `id` at the end
+    const [result] = await pool.query(query, [...values, id]);
+    return result.affectedRows; // Return the number of affected rows
+  } catch (error) {
+    console.error('Database error:', error);
+    throw error; // Rethrow to handle it in the caller
+  }
+}
 
 const processTasks = async () => {
   while (true) {
@@ -48,7 +79,7 @@ const processTasks = async () => {
       });
     }
     // 無論成功或失敗，處理容器完成的邏輯
-    await handleContainerCompletion(containerName);
+    await handleContainerCompletion(containerName, workflowData.id);
   }
 };
 

@@ -53,11 +53,11 @@ export const triggerWorkflows = async (req, res) => {
       const ymlFilePath = path.join(tmpDir, `workflow-${userId}.yml`);
       fs.writeFileSync(ymlFilePath, ymlContent);
 
-      const containerName = `temp_container_user ${userId}_${projectFolder}`;
+      const containerName = `temp_container_user${userId}_${projectFolder}`;
 
       // run DockerFile ，並傳入 secretsFilePath 和 ymlFilePath
       const dockerCommand = `
-      docker run --name temp_container -d \
+      docker run --name ${containerName} -d \
       -v ${secretsFilePath}:/app/secret.json \
       -v ${ymlFilePath}:/app/workflow.yml \
       git-viewer-runner:latest

@@ -32,6 +32,19 @@ export async function updateWorkflow(id, updateData) {
   }
 }
 
+export async function updateLog(id, logs) {
+  const query = 'UPDATE workflow SET log = ? WHERE id = ?';
+
+  try {
+    // Spread the values and append `id` at the end
+    const [result] = await pool.query(query, [logs, id]);
+    return result.affectedRows; // Return the number of affected rows
+  } catch (error) {
+    console.error('Database error:', error);
+    throw error; // Rethrow to handle it in the caller
+  }
+}
+
 export async function getProjectIdByRepoUrl(repoUrl) {
   const query = 'SELECT id, project_folder FROM project WHERE repo_url = ?';
   try {
