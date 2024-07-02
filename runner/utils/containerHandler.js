@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
-import { updateLog } from '../models/workflow.js';
+import { updateLog, updateStatus } from '../models/workflow.js';
+import { STATUS } from '../constants/statusCode.js';
 
 const checkContainer = (containerName) => new Promise((resolve, reject) => {
   exec(`docker inspect -f '{{.State.Running}}' ${containerName}`, (error, stdout, stderr) => {
@@ -55,6 +56,11 @@ export const handleContainerCompletion = async (containerName, workflowId) => {
     // 最後一次更新日誌
     const finalLogs = await getContainerLogs(containerName);
     await updateLog(workflowId, finalLogs);
+
+    const hasError = /error/i.test(finalLogs);
+    const finalStatus = hasError ? STATUS.FAILCOMPLETE : STATUS.SUCCESSCOMPLETE;
+    await updateStatus(workflowId, finalStatus);
+
     // 移除容器
     exec(`docker rm ${containerName}`, (error, stdout, stderr) => {
       if (error) console.log('Error removing container:', stderr);

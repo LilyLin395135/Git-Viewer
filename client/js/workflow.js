@@ -1,4 +1,5 @@
 const userId = 1;
+const URL = 'http://52.5.238.48';
 let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
@@ -10,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadSideBar() {
     const sidebar = document.querySelector('.sidebar');
     try {
-        const response = await fetch(`http://localhost:3001/api/workflow/user/${userId}`);
+        const response = await fetch(`${URL}/api/workflow/user/${userId}`);
         const workflows = await response.json();
         const projects = groupWorkflowsByProject(workflows);
         let listHtml = '<ul>';
@@ -68,7 +69,7 @@ function groupWorkflowsByProject(workflows) {
 async function loadWorkflowList(workflowName = 'All Workflows', projectId = null) {
     const content = document.querySelector('.content');
     try {
-        const response = await fetch(`http://localhost:3001/api/workflow/user/${userId}`);
+        const response = await fetch(`${URL}/api/workflow/user/${userId}`);
         const data = await response.json();
         let filteredWorkflows = data;
         if (projectId) {
@@ -112,42 +113,103 @@ function getStatusIcon(status) {
         case 1: return 'Processing';
         case 2: return 'Success';
         case 3: return 'Failure';
+        case 4: return 'SuccessAndComplete';
+        case 5: return 'CompleteButFail';
         default: return 'Unknown';
     }
 }
 
+// function showLog(workflowId) {
+//     fetch(`${URL}/api/workflow/workflow/${workflowId}`)  // Adjust URL as necessary
+//         .then(response => response.json())
+//         .then(workflow => {
+//             const sidebar = document.querySelector('.sidebar');
+//             sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflowId})">Back to Workflows</li></ul>`;
+
+//             const content = document.querySelector('.content');
+//             content.innerHTML = `
+//                 <div class="workflow-summary">
+//                     <div>
+//                         <span>${daysAgo(workflow.start_queue_time)} days ago</span>
+//                         <span>Action: ${workflow.action}, Branch: ${workflow.branch}</span>
+//                     </div>
+//                     <div>
+//                         <span>Status: ${getStatusIcon(workflow.status)}</span>
+//                     </div>
+//                     <div>
+//                         <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
+//                     </div>
+//                     <div>
+//                         <span>Execution Time: ${calculateDuration(workflow.start_execute_time, workflow.finish_execute_time)}</span>
+//                     </div>
+//                 </div>
+//                 <div class="workflow-log">
+//                     <pre>${workflow.log}</pre>
+//                 </div>
+//             `;
+//         })
+//         .catch(error => {
+//             console.error('Failed to fetch workflow details:', error);
+//         });
+// }
+
 function showLog(workflowId) {
-    fetch(`http://localhost:3001/api/workflow/workflow/${workflowId}`)  // Adjust URL as necessary
+    // 先取得當前的workflow狀態，以决定是否開始輪詢
+    fetch(`${URL}/api/workflow/workflow/${workflowId}`)
         .then(response => response.json())
         .then(workflow => {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflowId})">Back to Workflows</li></ul>`;
-
-            const content = document.querySelector('.content');
-            content.innerHTML = `
-                <div class="workflow-summary">
-                    <div>
-                        <span>${daysAgo(workflow.start_queue_time)} days ago</span>
-                        <span>Action: ${workflow.action}, Branch: ${workflow.branch}</span>
-                    </div>
-                    <div>
-                        <span>Status: ${getStatusIcon(workflow.status)}</span>
-                    </div>
-                    <div>
-                        <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
-                    </div>
-                    <div>
-                        <span>Execution Time: ${calculateDuration(workflow.start_execute_time, workflow.finish_execute_time)}</span>
-                    </div>
-                </div>
-                <div class="workflow-log">
-                    <pre>${workflow.log}</pre>
-                </div>
-            `;
+            if (workflow.status === 2) {  // 只有在狀態為2時才開始輪詢
+                startPolling(workflowId);
+            }
+            updateLogContent(workflow); // 無論如何都更新一次log顯示
         })
         .catch(error => {
-            console.error('Failed to fetch workflow details:', error);
+            console.error('Failed to fetch initial workflow details:', error);
         });
+}
+
+function startPolling(workflowId) {
+    const intervalId = setInterval(() => {
+        fetch(`${URL}/api/workflow/workflow/${workflowId}`)
+            .then(response => response.json())
+            .then(workflow => {
+                updateLogContent(workflow);
+                if (workflow.status === 4 || workflow.status === 5) {
+                    clearInterval(intervalId);  // 如果狀態為4或5，停止輪詢
+                }
+            })
+            .catch(error => {
+                console.error('Error polling workflow details:', error);
+                clearInterval(intervalId);  // 出錯也應停止輪詢
+            });
+    }, 1000); // 每秒輪詢一次
+}
+
+function updateLogContent(workflow) {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflow.id})">Back to Workflows</li></ul>`;
+
+    const content = document.querySelector('.content');
+    content.innerHTML = `
+        <div class="workflow-summary">
+            <div>
+                <span>${daysAgo(workflow.start_queue_time)} days ago</span>
+                <span>Action: ${workflow.action}, Branch: ${workflow.branch}</span>
+            </div>
+            <div>
+                <span>Status: ${getStatusIcon(workflow.status)}</span>
+            </div>
+            <div>
+                <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
+            </div>
+            <div>
+                <span>Execution Time: ${calculateDuration(workflow.start_execute_time, workflow.finish_execute_time)}</span>
+            </div>
+        </div>
+        <div class="workflow-log">
+            <pre>${workflow.log}</pre>
+        </div>
+    `;
 }
 
 async function goBackToWorkflow(workflowId) {

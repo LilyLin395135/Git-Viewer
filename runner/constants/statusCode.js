@@ -2,5 +2,7 @@ export const STATUS = {
   QUEUE: 0,
   PROCESSING: 1,
   SUCCESS: 2,
-  FAILURE: 3
+  FAILURE: 3,
+  SUCCESSCOMPLETE: 4,
+  FAILCOMPLETE: 5
 };

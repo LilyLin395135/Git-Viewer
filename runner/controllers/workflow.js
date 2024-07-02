@@ -4,7 +4,7 @@ import yaml from 'yaml';
 import os from 'os';
 import { exec } from 'child_process';
 import { getAllSecretsWithUserId } from '../models/secret.js';
-import { createWorkflow, updateWorkflow, getAllWorkflows, createProject, getWorkflow } from '../models/workflow.js';
+import { createWorkflow, getAllWorkflows, createProject, getWorkflow } from '../models/workflow.js';
 import { STATUS } from '../constants/statusCode.js';
 import { enqueueTask } from '../queue/queue.js';
 import { getTaipeiTime } from '../utils/getTime.js';
@@ -98,51 +98,6 @@ export const triggerWorkflows = async (req, res) => {
   }
 };
 
-// const checkContainer = (containerName) => new Promise((resolve, reject) => {
-//   exec(`docker inspect -f '{{.State.Running}}' ${containerName}`, (error, stdout, stderr) => {
-//     if (error) {
-//       reject(stderr);
-//     } else {
-//       resolve(stdout.trim() === 'false');// container 已停止運行
-//     }
-//   });
-// });
-
-// const waitForContainerToStop = async (containerName) => new Promise((resolve, reject) => {
-//   const interval = setInterval(async () => {
-//     try {
-//       const isStopped = await checkContainer(containerName);
-//       if (isStopped) {
-//         clearInterval(interval);
-//         resolve();
-//       }
-//     } catch (error) {
-//       clearInterval(interval);
-//       reject(error);
-//     }
-//   }, 5000); // 每5秒檢查一次
-// });
-
-// // 監控容器直到停止並處理日誌和容器清理
-// const handleContainerCompletion = async (containerName) => {
-//   try {
-//     await waitForContainerToStop(containerName);
-//     const logs = await new Promise((resolve, reject) => {
-//       exec(`docker logs ${containerName}`, (error, stdout, stderr) => {
-//         if (error) reject(stderr);
-//         else resolve(stdout);
-//       });
-//     });
-//     console.log('Logs:', logs);
-//     exec(`docker rm ${containerName}`, (error, stdout, stderr) => {
-//       if (error) console.log('Error removing container:', stderr);
-//       else console.log('Container removed:', stdout);
-//     });
-//   } catch (error) {
-//     console.error('Error handling container:', error);
-//   }
-// };
-
 export const getWorkflowLogs = async (req, res) => {
   const { containerName } = req.params;
 
@@ -211,24 +166,3 @@ export const getWorkflowById = async (req, res) => {
     res.status(500).json({ message: 'Failed to retrieve workflow', error: error.message });
   }
 };
-
-// function getTaipeiTime() {
-//   const now = new Date();
-//   now.setHours(now.getHours() + 8);
-//   now.setMinutes(now.getMinutes());
-//   return now.toISOString().slice(0, 19).replace('T', ' ');
-// }
-
-// function getTaipeiTimePlusOneMinute() {
-//   const now = new Date();
-//   now.setHours(now.getHours() + 8);
-//   now.setMinutes(now.getMinutes() + 1);
-//   return now.toISOString().slice(0, 19).replace('T', ' ');
-// }
-
-// function getTaipeiTimePlusTwoMinute() {
-//   const now = new Date();
-//   now.setHours(now.getHours() + 8);
-//   now.setMinutes(now.getMinutes() + 2);
-//   return now.toISOString().slice(0, 19).replace('T', ' ');
-// }

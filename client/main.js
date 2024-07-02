@@ -7,6 +7,10 @@ import fse from 'fs-extra';
 import ignore from 'ignore';
 import { findGitRoot, checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { db, createGitInfo, deleteGitInfo } from './database.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+console.log(process.env.URL);
 
 // chrome debug tool
 if (process.env.NODE_ENV !== 'production') {
@@ -293,7 +297,7 @@ ipcMain.handle('trigger-workflows', async (event, { userId, eventTriggered, fold
       commitMessage
     } = await triggerWorkflows(eventTriggered, folderPath);
 
-    const response = await axios.post('http://localhost:3001/api/workflow/trigger', {
+    const response = await axios.post(`${process.env.URL}/api/workflow/trigger`, {
       userId,
       event: eventTriggered,
       ymlContent,

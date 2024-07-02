@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import simpleGit from 'simple-git';
 import yml from 'yaml';
-import { exec } from 'child_process';
 
 export const findGitRoot = (folderPath) => {
   while (folderPath) {
@@ -40,21 +39,6 @@ const getRepositoryUrl = (dir) => {
   }
   return null;
 };
-
-// export const executeCommand = (command) => {
-//   return new Promise((resolve, reject) => {
-//     exec(command, (error, stdout, stderr) => {
-//       if (error) {
-//         console.error(`Error executing command: ${command}`);
-//         console.error(stderr);
-//         reject(error);
-//       } else {
-//         console.log(stdout);
-//         resolve(stdout);
-//       }
-//     });
-//   });
-// };
 
 export const checkWorkflows = async ({commands, folderPath})=>{
   const git = simpleGit(folderPath);
