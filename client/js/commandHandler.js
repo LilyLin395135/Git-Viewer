@@ -89,12 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
     runAllButton.addEventListener('click', async () => {
         try {
             const commands = Array.from(commandList.children).map(li => li.textContent);
-            // const triggerEvents = new Set();
 
             //檢查每個命令是否符合觸發點
             const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
-            // const checkWorkflowsResult = await window.electron.checkWorkflows(commands, currentFolderPath);
-            // checkWorkflowsResult.forEach(event => triggerEvents.add(event));
 
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];
@@ -112,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Conflicts detected:\n' + result.conflicts);
                 } else {
                     console.log(`Command executed: ${command}`);
+                    lastGitInfo = result;
+                    localStorage.setItem('gitInfo', JSON.stringify(result));
+                    localStorage.setItem('lastGitInfo', JSON.stringify(result));// 更新 localStorage 中的 lastGitInfo
                     drawGitGraph(result, 'formal-graph');
                 }
 
@@ -145,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRunAllButtonStatus();
         }
         localStorage.removeItem('commands');
-        // localStorage.removeItem('currentCommand');
         clearCommandList();
     });
 });
@@ -162,7 +161,7 @@ function startPolling(workflowId) {
     const intervalId = setInterval(async () => {
         const response = await fetch(`${URL}/api/workflow/workflow/${workflowId}`);
         const workflow = await response.json();
-        
+
         if (workflow.status === 1) {
             console.log("Starting the workflow");
         } else if (workflow.status === 2 || workflow.status === 4) {
@@ -189,8 +188,5 @@ function startPolling(workflowId) {
 
 // 導航到日誌頁面
 function goToLogPage(workflowId) {
-    // Electron的分頁跳轉，如果在web環境中，則使用location.href
-    // 假設您有一個指向日誌頁面的路由設定
     window.location.href = `workflow.html?workflowId=${workflowId}`;
-    // 如果在 Electron 中，您可能需要使用 Electron 的 shell 或 IPC 通信來處理路由跳轉
 }
