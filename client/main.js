@@ -100,9 +100,13 @@ ipcMain.handle('login', async (event, {email, password}) => {
   }
 });
 
-ipcMain.handle('findGitRoot', findGitRoot);
+ipcMain.handle('findGitRoot', async (event, folderPath) => {
+  return findGitRoot(folderPath);
+});
 
-ipcMain.handle('findYmlFiles', findYmlFiles);
+ipcMain.handle('findYmlFiles', async (event, dir) => {
+  return findYmlFiles(dir);
+});
 
 ipcMain.handle('init-git', initGit);
 

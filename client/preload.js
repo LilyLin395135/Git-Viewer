@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('electron', {
   prepareTempGitFolder: (currentFolderPath) => ipcRenderer.invoke('prepare-temp-git-folder', currentFolderPath),
   checkWorkflows: (commands, folderPath) => ipcRenderer.invoke('check-workflows', { commands, folderPath }),
   triggerWorkflows: (userId, eventTriggered, folderPath) => ipcRenderer.invoke('trigger-workflows', { userId, eventTriggered, folderPath }),
-  findGitRoot: (currentFolderPath) => ipcRenderer.invoke('findGitRoot', currentFolderPath),
+  findGitRoot: (folderPath) => ipcRenderer.invoke('findGitRoot', folderPath),
   findYmlFiles: (rootDir) => ipcRenderer.invoke('findYmlFiles', rootDir),
   register: (email, password) => ipcRenderer.invoke('register', { email, password }),
   login: (email, password) => ipcRenderer.invoke('login', { email, password })

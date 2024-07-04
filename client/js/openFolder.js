@@ -22,7 +22,7 @@ document.getElementById('open-folder').addEventListener('click', async () => {
 
 async function handleFolderSelection() {
   try {
-    const result = await window.election.openFolder();
+    const result = await window.electron.openFolder();
     if (result) {
       await processFolderInfo(result.folderPath, result.gitExists);
     }
