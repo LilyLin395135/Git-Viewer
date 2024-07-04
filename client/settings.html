@@ -7,6 +7,16 @@
     content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
   <link rel="stylesheet" type="text/css" href="stylesheet/style.css">
   <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
+  <!-- <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('You need to log in first.');
+        const redirectUrl=encodeURIComponent(window.location.href);
+        window.location.href = `login.html?redirect=${redirectUrl}`;
+      }
+    });
+  </script> -->
   <script defer src="./js/loadHeader.js"></script>
   <script defer src="./js/secretHandler.js"></script>
 </head>

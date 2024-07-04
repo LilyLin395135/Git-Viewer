@@ -34,12 +34,16 @@ export default defineConfig({
         { src: 'libs/d3.v6.min.js', dest: 'libs' },
         { src: 'js/loadHeader.js', dest: 'js' },
         { src: 'js/workflow.js', dest: 'js' },
+        { src: 'js/register.js', dest: 'js' },
+        { src: 'js/login.js', dest: 'js' },
         { src: 'header.html', dest: '' },
         { src: 'stylesheet/header.css', dest: 'stylesheet' },
         { src: 'stylesheet/style.css', dest: 'stylesheet' },
         { src: 'stylesheet/workflow.css', dest: 'stylesheet' },
         { src: 'settings.html', dest: '' },
         { src: 'workflow.html', dest: '' },
+        { src: 'login.html', dest: '' },
+        { src: 'register.html', dest: '' },
         { src: 'assets/logo_word.png', dest: 'assets' },
         { src: 'assets/logo_GV_1.png', dest: 'assets' }
       ]

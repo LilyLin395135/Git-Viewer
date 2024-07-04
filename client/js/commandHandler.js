@@ -93,6 +93,23 @@ document.addEventListener('DOMContentLoaded', () => {
             //檢查每個命令是否符合觸發點
             const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
 
+            const userId = localStorage.getItem('userId');
+            const rootDir = await window.electron.findGitRoot(currentFolderPath);
+            const yamlFiles = await window.electron.findYmlFiles(rootDir);
+
+            if (yamlFiles.length > 0 && !userId) {
+                const loginConfirmed = confirm('You need to log in to trigger yml files for automation. Do you want to log in now?');
+                if (loginConfirmed) {
+                    const redirectUrl = encodeURIComponent(window.location.href);
+                    window.location.href = `login.html?redirect=${redirectUrl}`;
+                    return;
+                }
+                // else {
+                //     alert('You need to log in to execute the workflows.');
+                //     return;
+                // }
+            }
+
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];
                 const command = commandElement.textContent;
@@ -115,11 +132,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     drawGitGraph(result, 'formal-graph');
                 }
 
-                //如果命令符合觸發點，立即觸發工作流
                 if (command.startsWith('git')) {
                     const [_, mainCommand] = command.split(' ');
                     const eventTriggered = mainCommand.toLowerCase();
                     if (eventsTriggered.has(eventTriggered)) {
+                        //未登入無法執行workflow
+                        if (!userId) {
+                            alert('You need to log in to execute the workflows.');
+                            return;
+                        }
+
                         const workflowResults = await window.electron.triggerWorkflows(userId, eventTriggered, currentFolderPath);
 
                         if (Array.isArray(workflowResults)) {

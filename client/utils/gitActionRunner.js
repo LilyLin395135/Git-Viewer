@@ -15,7 +15,7 @@ export const findGitRoot = (folderPath) => {
   return null;
 };
 
-const findYmlFiles = (dir) => {
+export const findYmlFiles = (dir) => {
   const gitViewerDir = path.join(dir, '.gitviewer');
   const yamlFiles = [];
 

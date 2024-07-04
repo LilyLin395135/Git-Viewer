@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
+    //跳轉登入頁
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        alert('You need to log in first.');
+        const redirectUrl = encodeURIComponent(window.location.href);
+        window.location.href = `login.html?redirect=${redirectUrl}`;
+        return;
+    }
     const newSecretButton = document.getElementById('new-secret');
     const secretModal = document.getElementById('secret-modal');
     const closeSecretModalButton = document.getElementById('close-secret-modal');
@@ -6,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const secretNameInput = document.getElementById('secret-name');
     const secretValueInput = document.getElementById('secret-value');
     const secretsList = document.getElementById('secrets-list');
-    const userId = 1;
+    // const userId = 1;
 
     // 模擬的 secrets 資料，可以從 server 獲取
     const secrets = [

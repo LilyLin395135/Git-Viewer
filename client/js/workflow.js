@@ -1,12 +1,20 @@
-const userId = 1;
+const userId = 0;
 const URL = 'http://52.5.238.48';
 let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
+document.addEventListener('DOMContentLoaded', function () {
+    //跳轉登入頁
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+        alert('You need to log in first.');
+        const redirectUrl = encodeURIComponent(window.location.href);
+        window.location.href = `login.html?redirect=${redirectUrl}`;
+        return;
+    }
+    const urlParams = new URLSearchParams(window.location.search); // 若有workflowId就到log頁
     const workflowId = urlParams.get('workflowId');
-    
+
     if (workflowId) {
         fetchWorkflowDetails(workflowId);  // Fetch details if workflowId is present
     } else {
@@ -45,7 +53,7 @@ async function loadSideBar() {
         sidebar.innerHTML = listHtml;
 
         sidebar.querySelectorAll('li[data-name]').forEach(item => {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function () {
                 document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
                 this.classList.add('active');
                 lastActiveWorkflowName = this.dataset.name;

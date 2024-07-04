@@ -9,6 +9,7 @@ import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { initGit, getGitInfo } from './utils/gitInfo.js'
 import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
+import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
 
 dotenv.config();
 console.log(process.env.URL);
@@ -52,6 +53,56 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
   }
   return null;
 });
+
+ipcMain.handle('register', async (event, {email, password}) => {
+  try {
+    const response = await fetch('http://localhost:3000/api/user/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      return { success: false, message };
+    }
+
+    const data = await response.json();
+    return { success: true,  userId: data.data.user.id, token: data.data.access_token };
+  } catch (error) {
+    console.error('Error in register:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('login', async (event, {email, password}) => {
+  try {
+    const response = await fetch('http://localhost:3000/api/user/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      return { success: false, message };
+    }
+
+    const data = await response.json();
+    return { success: true, userId: data.data.user.id, token: data.data.access_token };
+  } catch (error) {
+    console.error('Error in login:', error);
+    return { success: false, message: error.message };
+  }
+});
+
+ipcMain.handle('findGitRoot', findGitRoot);
+
+ipcMain.handle('findYmlFiles', findYmlFiles);
 
 ipcMain.handle('init-git', initGit);
 
