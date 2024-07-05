@@ -7,16 +7,7 @@
     content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
   <link rel="stylesheet" type="text/css" href="stylesheet/style.css">
   <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        alert('You need to log in first.');
-        const redirectUrl=encodeURIComponent(window.location.href);
-        window.location.href = `login.html?redirect=${redirectUrl}`;
-      }
-    });
-  </script> -->
+  <link rel="stylesheet" type="text/css" href="stylesheet/secretStyle.css">
   <script defer src="./js/loadHeader.js"></script>
   <script defer src="./js/secretHandler.js"></script>
 </head>
@@ -24,26 +15,72 @@
 <body>
   <div id="header"></div>
   <div class="content">
-    <div class="sidebar">
-      <div id="workflow-secrets" class="box">
-        <div class="box-header" style="display: flex; justify-content: space-between;">
-          <label for="secrets-list" class="center-label">Workflow Secrets</label>
-          <button id="new-secret" class="button">New Secret</button>
+    <h3 id="repository-secrets" class="Text-sc-17v1xeu-0 ixasUU">Repository secrets</h3>
+    <div class="border rounded-2 mt-2" id="secrets-container">
+      <div class="Blankslate" id="no-secrets" style="display: none;">
+        <p class="Blankslate-Description">This repository has no secrets.</p>
+        <div class="mt-2" data-testid="table-action">
+          <button id="new-secret-alt" class="button">New repository secret</button>
         </div>
-        <div id="secrets-list" class="box-content"></div>
+      </div>
+      <div id="secrets-list" class="box-content" style="display: none;">
+        <div class="Table__StyledTableContainer-sc-jofqvq-1 jvVQnQ">
+          <div class="TableActions">
+            <button id="new-secret" class="button">New Secret</button>
+          </div>
+          <div class="Box-sc-g0xbh4-0 btEQGW TableSubtitle" id="repository-secrets-subtitle"></div>
+          <div class="Box-sc-g0xbh4-0 jHpces TableOverflowWrapper">
+            <table aria-describedby="repository-secrets-subtitle" aria-labelledby="repository-secrets"
+              data-cell-padding="normal" class="Table_StyledTable-sc-jofqvq-0 kFOkUI Table" role="table"
+              style=" --grid-template-columns:minmax(0, 1fr) auto auto">
+              <thead class="TableHead" role="rowgroup">
+                <tr class="TableRow" role="row">
+                  <th aria-sort="ascending" class="TableHeader" role="columnheader" scope="col">
+                    <button type="button" class="Table_Button-sc-jofqvq-2 eLwBJn TableSortButton">Name</button>
+                  </th>
+                  <th class="TableHeader" role="columnheader" scope="col" data-cell-align="end">
+                    <button type="button" class="Table_Button-sc-jofqvq-2 eLwBJn TableSortButton">Actions</button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="TableBody" role="rowgroup" id="secrets-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div id="secret-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-button" id="close-secret-modal">&times;</span>
+    <div id="new-secret-form" class="new-secret-form hidden">
       <h2>New Secret</h2>
-      <label for="secret-name">Name</label>
-      <input type="text" id="secret-name" placeholder="YOUR_SECRET_NAME">
-      <label for="secret-value">Secret</label>
-      <textarea id="secret-value" rows="4" placeholder="SECRET_VALUE"></textarea>
-      <button id="add-secret-button" class="button">Add Secret</button>
+      <form id="secret-form">
+        <div class="FormControl-spacingWrapper">
+          <primer-text-field class="FormControl width-full FormControl--fullWidth" data-catalyst="">
+            <label class="FormControl-label" for="secret-name">
+              Name
+              <span aria-hidden="true">*</span>
+            </label>
+            <div class="FormControl-input-wrap">
+              <input placeholder="YOUR_SECRET_NAME" maxlength="300" aria-required="true"
+                class="form-control FormControl-input FormControl-medium" size="300" type="text" name="secret_name"
+                id="secret-name">
+            </div>
+          </primer-text-field>
+          <div class="FormControl width-full FormControl--fullWidth">
+            <label class="FormControl-label" for="secret-value">
+              Secret
+              <span aria-hidden="true">*</span>
+            </label>
+            <div class="FormControl-input-wrap">
+              <textarea rows="9" aria-required="true" class="form-control FormControl-input FormControl-textarea"
+                name="secret_value" id="secret-value"></textarea>
+            </div>
+          </div>
+          <button id="submit-secret-button" class="button">Add Secret</button>
+          <!--Close 的 type="button" 就不會觸發 submit -->
+          <button id="close-secret-button" class="button button-close" type="button">Close</button>
+        </div>
+      </form>
     </div>
   </div>
 </body>

@@ -40,6 +40,7 @@ export default defineConfig({
         { src: 'stylesheet/header.css', dest: 'stylesheet' },
         { src: 'stylesheet/style.css', dest: 'stylesheet' },
         { src: 'stylesheet/workflow.css', dest: 'stylesheet' },
+        { src: 'stylesheet/secretStyle.css', dest: 'stylesheet' },
         { src: 'settings.html', dest: '' },
         { src: 'workflow.html', dest: '' },
         { src: 'login.html', dest: '' },

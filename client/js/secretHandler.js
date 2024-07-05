@@ -1,3 +1,5 @@
+const URL = 'http://52.5.238.48'; // http://localhost:3000
+
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
     const userId = localStorage.getItem('userId');
@@ -8,61 +10,98 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
     const newSecretButton = document.getElementById('new-secret');
-    const secretModal = document.getElementById('secret-modal');
-    const closeSecretModalButton = document.getElementById('close-secret-modal');
-    const addSecretButton = document.getElementById('add-secret-button');
+    const newSecretButtonAlt = document.getElementById('new-secret-alt');
     const secretNameInput = document.getElementById('secret-name');
     const secretValueInput = document.getElementById('secret-value');
     const secretsList = document.getElementById('secrets-list');
-    // const userId = 1;
+    const noSecretsMessage = document.getElementById('no-secrets');
+    const secretsBody = document.getElementById('secrets-body');
+    const newSecretForm = document.getElementById('new-secret-form');
+    const secretForm = document.getElementById('secret-form');
+    const closeSecretButton = document.getElementById('close-secret-button');
 
-    // 模擬的 secrets 資料，可以從 server 獲取
-    const secrets = [
-        { name: 'SSH_HOST_1', updatedAt: '2024-06-25T01:02:33.000Z' },
-        { name: 'SSH_PATH_1', updatedAt: '2024-06-25T01:02:59.000Z' }
-    ];
+    let isEditing = false;
+    let editingSecretId = null;
+
+    const savedFormState = JSON.parse(localStorage.getItem('newSecretFormState'));
+
+    if (savedFormState) {
+        openSecretForm();
+        secretNameInput.value = savedFormState.name;
+        secretValueInput.value = savedFormState.value;
+        isEditing = savedFormState.isEditing;
+        editingSecretId = savedFormState.editingSecretId;
+    } else {
+        showSecrets();
+    }
 
     async function showSecrets() {
         try {
-            const response = await fetch(`http://52.5.238.48/api/secret?userId=${userId}`);
+            const response = await fetch(`${URL}/api/secret?userId=${userId}`);
             const { secrets } = await response.json();
 
-            secretsList.innerHTML = ''; // 清空列表
-            secrets.forEach(secret => {
-                const secretItem = document.createElement('div');
-                secretItem.classList.add('secret-item');
-                secretItem.innerHTML = `
-                <div class="secret-name">${secret.name}</div>
-                <div class="secret-actions">
-                    <button class="button edit-secret" user-id="${userId} data-id="${secret.id}">Edit</button>
-                    <button class="button delete-secret" data-id="${userId}">Delete</button>
-                </div>
-            `;
-                secretsList.appendChild(secretItem);
-            });
+            // 先清空列表
+            secretsBody.innerHTML = '';
 
-            document.querySelectorAll('.edit-secret').forEach(button => {
-                button.addEventListener('click', function () {
-                    const secretId = this.getAttribute('data-id');
-                    openEditSecretModal(secretId);
+            if (secrets.length === 0) {
+                noSecretsMessage.style.display = 'block';
+                secretsList.style.display = 'none';
+            } else {
+                noSecretsMessage.style.display = 'none';
+                secretsList.style.display = 'block';
+                secrets.forEach(secret => {
+                    const secretRow = document.createElement('tr');
+                    secretRow.classList.add('TableRow');
+                    secretRow.innerHTML = `
+                        <td class="TableCell">${secret.name}</td>
+                        <td class="TableCell" data-cell-align="end">
+                            <button class="button edit-secret" data-id="${secret.id}">Edit</button>
+                            <button class="button delete-secret" data-id="${secret.id}">Delete</button>
+                        </td>
+                    `;
+                    secretsBody.appendChild(secretRow);
                 });
-            });
 
-            document.querySelectorAll('.delete-secret').forEach(button => {
-                button.addEventListener('click', function () {
-                    const secretId = this.getAttribute('data-id');
-                    deleteSecret(secretId);
-                });
-            });
-
+                setupEditAndDeleteButtons();
+            }
         } catch (error) {
             console.error('Error fetching secrets:', error);
         }
     }
 
+    function setupEditAndDeleteButtons() {
+        document.querySelectorAll('.edit-secret').forEach(button => {
+            button.addEventListener('click', function () {
+                const secretId = this.getAttribute('data-id');
+                openEditSecretModal(secretId);
+            });
+        });
+
+        document.querySelectorAll('.delete-secret').forEach(button => {
+            button.addEventListener('click', function () {
+                const secretId = this.getAttribute('data-id');
+                deleteSecret(secretId);
+            });
+        });
+    }
+
+    function saveFormState() {
+        const formState = {
+            name: secretNameInput.value.trim(),
+            value: secretValueInput.value.trim(),
+            isEditing: isEditing,
+            editingSecretId: editingSecretId
+        };
+        localStorage.setItem('newSecretFormState', JSON.stringify(formState));
+    }
+
+    function deleteFormState() {
+        localStorage.removeItem('newSecretFormState');
+    }
+
     async function deleteSecret(secretId) {
         try {
-            const response = await fetch(`http://52.5.238.48/api/secret/${userId}/${secretId}`, {
+            const response = await fetch(`${URL}/api/secret/${userId}/${secretId}`, {
                 method: 'DELETE'
 
             });
@@ -76,29 +115,52 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    function openSecretModal() {
-        secretModal.classList.remove('hidden');
+    function openSecretForm() {
+        isEditing = false;
+        editingSecretId = null;
+        newSecretForm.classList.remove('hidden');
+        secretsList.style.display = 'none';
+        noSecretsMessage.style.display = 'none';
     }
 
-    function closeSecretModal() {
-        secretModal.classList.add('hidden');
+    function openEditSecretModal(secretId) {
+        isEditing = true;
+        editingSecretId = secretId;
+        const secretRow = document.querySelector(`.edit-secret[data-id="${secretId}"]`).closest('tr');
+        const secretName = secretRow.querySelector(`.TableCell`).innerText;
+
+        secretNameInput.value = secretName;
+        secretValueInput.value = ''; //不帶入資料
+
+        newSecretForm.classList.remove('hidden');
+        secretsList.style.display = 'none';
+        noSecretsMessage.style.display = 'none';
     }
 
-    async function addSecret() {
+    function closeSecretForm() {
+        newSecretForm.classList.add('hidden');
+        secretsList.style.display = 'block';
+        deleteFormState();
+        showSecrets()
+    }
+
+    async function addSecret(event) {
+        event.preventDefault();
         const name = secretNameInput.value.trim();
         const value = secretValueInput.value.trim();
         if (name && value) {
             try {
-                const response = await fetch('http://52.5.238.48/api/secret', {
+                const response = await fetch(`${URL}/api/secret`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ userId: 1, name, value })
+                    body: JSON.stringify({ userId, name, value })
                 });
                 if (response.status === 201) {
                     showSecrets();
-                    closeSecretModal();
+                    closeSecretForm();
+                    deleteFormState();
                 } else {
                     alert('Failed to add secret.');
                 }
@@ -111,9 +173,46 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    newSecretButton.addEventListener('click', openSecretModal);
-    closeSecretModalButton.addEventListener('click', closeSecretModal);
-    addSecretButton.addEventListener('click', addSecret);
+    async function updateSecret(event) {
+        event.preventDefault();
+        const name = secretNameInput.value.trim();
+        const value = secretValueInput.value.trim();
+        if (name && value) {
+            try {
+                const response = await fetch(`${URL}/api/secret/${editingSecretId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, value })
+                });
+                if (response.status === 200) {
+                    showSecrets();
+                    closeSecretForm();
+                    deleteFormState();
+                } else {
+                    alert('Failed to update secret.');
+                }
+            } catch (error) {
+                console.error('Error updating secret:', error);
+                alert(`Error updating secret: ${error}`);
+            }
+        } else {
+            alert('Please provide both name and value for the secret.');
+        }
+    }
 
-    showSecrets();
+    newSecretButton.addEventListener('click', openSecretForm);
+    newSecretButtonAlt.addEventListener('click', openSecretForm);
+    closeSecretButton.addEventListener('click', closeSecretForm);
+    secretForm.addEventListener('submit', function (event) {
+        if (isEditing) {
+            updateSecret(event);
+        } else {
+            addSecret(event);
+        }
+    });
+    // 保存表單狀態
+    secretNameInput.addEventListener('input', saveFormState);
+    secretValueInput.addEventListener('input', saveFormState);
 });
