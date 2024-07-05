@@ -36,3 +36,15 @@ export async function deleteSecret(userId, secretId) {
   );
   return result;
 }
+
+export async function patchSecret(secretId, name, value) {
+  const query = `
+  UPDATE secrets SET name = ?, value = ? WHERE id = ?
+  `;
+
+  const [result] = await pool.query(
+    query,
+    [name, value, secretId]
+  );
+  return result;
+}

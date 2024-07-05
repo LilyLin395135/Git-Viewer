@@ -14,3 +14,9 @@ export const deleteSecretValidator = [
   param('userId').notEmpty().withMessage('userId is required'),
   param('secretId').notEmpty().withMessage('secretId is required')
 ];
+
+export const patchSecretValidator = [
+  param('secretId').notEmpty().withMessage('secretId is required'),
+  body('name').notEmpty().withMessage('name is required'),
+  body('value').notEmpty().withMessage('value is required')
+];

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { createSecret, getAllSecretsWithUserId, deleteSecret } from '../models/secret.js';
+import { createSecret, getAllSecretsWithUserId, deleteSecret, patchSecret } from '../models/secret.js';
 
 const appDirectory = process.cwd(); // 當前工作資料夾
 
@@ -48,6 +48,17 @@ export async function deleteSecretById(req, res) {
     const { userId, secretId } = req.params;
     await deleteSecret(userId, secretId);
     res.status(200).json({ message: 'Secret deleted successfully' });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ message: error.message });
+  }
+}
+
+export async function patchSecretById(req, res) {
+  try {
+    const { name, value } = req.body;
+    const { secretId } = req.params;
+    await patchSecret(secretId, name, value);
+    res.status(200).json({ message: 'Secret updated successfully' });
   } catch (error) {
     res.status(error.statusCode || 500).json({ message: error.message });
   }
