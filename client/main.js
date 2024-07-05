@@ -7,6 +7,7 @@ import fse from 'fs-extra';
 import ignore from 'ignore';
 import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { initGit, getGitInfo } from './utils/gitInfo.js'
+import { formatStatus } from './utils/gitCommands.js';
 import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
 import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
@@ -54,7 +55,7 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
   return null;
 });
 
-ipcMain.handle('register', async (event, {email, password}) => {
+ipcMain.handle('register', async (event, { email, password }) => {
   try {
     const response = await fetch('http://localhost:3000/api/user/signup', {
       method: 'POST',
@@ -70,14 +71,14 @@ ipcMain.handle('register', async (event, {email, password}) => {
     }
 
     const data = await response.json();
-    return { success: true,  userId: data.data.user.id, token: data.data.access_token };
+    return { success: true, userId: data.data.user.id, token: data.data.access_token };
   } catch (error) {
     console.error('Error in register:', error);
     return { success: false, message: error.message };
   }
 });
 
-ipcMain.handle('login', async (event, {email, password}) => {
+ipcMain.handle('login', async (event, { email, password }) => {
   try {
     const response = await fetch('http://localhost:3000/api/user/signin', {
       method: 'POST',
@@ -187,7 +188,76 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
     console.log(`mainCommand:${mainCommand}`);
     console.log(`args:${args}`);
 
+    let resultMessage = '';
+
     switch (mainCommand) {
+      case 'pull':
+        const remoteName = args[0] || 'origin';
+        const branchName = args[1] || 'main';
+        const pullResult = await git.pull(remoteName, branchName);
+
+        if (pullResult.summary.changes === 0) {
+          resultMessage = 'Already up to date.';
+        } else {
+          resultMessage = `
+          Pulled from ${remoteName}/${branchName} successfully.
+          summary:${pullResult.summary}
+          `;
+        }
+        break;
+
+      case 'fetch':
+        const fetchRemoteName = args[0] || 'origin';
+        const fetchBranchName = args[1];
+        const fetchResult = await git.fetch(fetchRemoteName, fetchBranchName);
+
+        if (fetchResult) {
+          resultMessage = `
+          Fetched from ${fetchRemoteName}/${fetchBranchName || ''} successfully.
+          ${JSON.stringify(fetchResult, null, 2)}
+          `;
+        } else {
+          resultMessage = 'Fetch completed with no changes.';
+        }
+        break;
+
+      case 'rebase':
+        const rebaseBranch = args[0];
+        const rebaseResult = await git.rebase([rebaseBranch]);
+
+        if (rebaseResult) {
+          resultMessage = `
+          Rebased onto ${rebaseBranch} successfully.
+          rebaseResult
+          `;
+        } else {
+          resultMessage = 'Rebase completed with no changes.';
+        }
+        break;
+
+      case 'reset':
+        const resetMode = args[0] || 'mixed'; // 默认使用混合模式
+        const resetCommit = args[1] || 'HEAD';
+        await git.reset([`--${resetMode}`, resetCommit]);
+        const postResetStatus = await git.status();
+        const unstagedChanges = postResetStatus.files
+          .filter(file => file.working_dir !== ' ')
+          .map(file => `${file.working_dir}       ${file.path}`)
+          .join('\n');
+        resultMessage = `Unstaged changes after reset:\n${unstagedChanges}`;
+        break;
+
+      case 'rm':
+        await git.rm(args);
+        resultMessage = `Removed ${args.join(', ')} successfully.`;
+        break;
+
+      case 'mv':
+        const [source, destination] = args;
+        await git.mv(source, destination);
+        resultMessage = `Moved ${source} to ${destination} successfully.`;
+        break;
+
       case 'add':
         await git.add(args);
         break;
@@ -203,7 +273,18 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         break;
 
       case 'branch':
-        await git.branch(args);
+        if (args.includes('-d')) {
+          const branchToDelete = args[args.indexOf('-d') + 1];
+          await git.deleteLocalBranch(branchToDelete);
+          return { message: `Branch '${branchToDelete}' deleted successfully.` };
+        } else if (args.length === 0) {
+          const branchSummary = await git.branchLocal();
+          const branches = branchSummary.all.map(branch => branch === branchSummary.current ? `* ${branch}` : `  ${branch}`).join('\n');
+          resultMessage = `Branches:\n${branches}`;
+        } else {
+          const branchResult = await git.branch(args);
+          resultMessage = `Branch '${args[0]}' created successfully.\n${JSON.stringify(branchResult, null, 2)}`;
+        }
         break;
 
       case 'checkout':
@@ -211,7 +292,7 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
           const branchName = args[0];
           const currentBranch = (await (git.status())).current;
           if (branchName === currentBranch) {
-            return { message: `Already on '${branchName}` };
+            resultMessage = `Already on '${branchName}`;
           }
 
           const worktreeList = await git.raw(['worktree', 'list']);
@@ -232,15 +313,26 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         break;
 
       case 'merge':
-        await git.merge(args);
-        break;
-
-      case 'branch -d':
-        await git.deleteLocalBranch(args[0]);
+        const mergeResult = await git.merge(args);
+        console.log('mergeResult:', mergeResult); // 打印 mergeResult 以查看其结构
+        const summary = mergeResult.summary || {};
+        const files = mergeResult.files || [];
+        if (files.length > 0) {
+          const formattedChanges = files.map(file => {
+            const insertions = mergeResult.insertions[file] || 0;
+            const deletions = mergeResult.deletions[file] || 0;
+            return `${file} | ${insertions} insertion(s), ${deletions} deletion(s)`;
+          }).join('\n');
+          resultMessage = `Updating ${summary.our || ''}..${summary.theirs || ''}\nFast-forward\n${formattedChanges}`;
+        } else {
+          resultMessage = `Merged ${args.join(' ')} successfully.`;
+        }
         break;
 
       case 'status':
-        await git.status();
+        const statusResult = await git.status();
+        const formattedStatus = formatStatus(statusResult);
+        resultMessage = formattedStatus;
         break;
 
       case 'push':
@@ -266,7 +358,7 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
           } else {
             // 實際執行 git push
             await git.push(args);
-            return { message: 'Pushed to remote repository successfully.' };
+            resultMessage = 'Pushed to remote repository successfully.';
           }
         } catch (diffError) {
           if (diffError.message.includes(`Not a valid object name`)) {
@@ -278,9 +370,23 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
           }
         }
         break;
-      // Add more cases as needed
+
+      case 'log':
+        const logResult = await git.log(args);
+        const formattedLog = logResult.all.map(commit => {
+          return `commit ${commit.hash}\nAuthor: ${commit.author_name} <${commit.author_email}>\nDate: ${commit.date}\n\n    ${commit.message}\n`;
+        }).join('\n');
+        resultMessage = formattedLog;
+        break;
+
+      case 'diff':
+        const diffResult = await git.diff(args);
+        resultMessage = diffResult;
+        break;
+
       default:
-        await git.raw([mainCommand, ...args]);
+        const rawResult = await git.raw([mainCommand, ...args]);
+        resultMessage = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
     }
 
     const gitInfo = await getGitInfo(folderPath);
@@ -293,7 +399,7 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         }
       });
     });
-    return gitInfo;
+    return { message: resultMessage, gitInfo };
   } catch (error) {
     console.error('Error executing git command:', error);
     throw new Error(error.message || 'Unknown error');

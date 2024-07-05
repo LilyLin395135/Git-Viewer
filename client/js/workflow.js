@@ -1,11 +1,11 @@
-const userId = 0;
+let userId = 0;
 const URL = 'http://52.5.238.48';
 let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
-    const userId = localStorage.getItem('userId');
+    userId = localStorage.getItem('userId');
     if (!userId) {
         alert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);

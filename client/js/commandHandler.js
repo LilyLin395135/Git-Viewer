@@ -2,7 +2,6 @@ const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
 const URL = 'http://52.5.238.48';
-const userId = 1;
 
 let isPushCheckOnly = true;
 let commandExists = commandList.children.length > 0;
@@ -66,15 +65,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
-                    if (result.message) {
-                        alert(result.message);
-                    } else if (result.conflict) {
+                    if (result.conflict) {
                         alert('Conflicts detected:\n' + result.conflicts);
                     } else {
-                        console.log('Update git info', result);
-                        drawGitGraph(result, 'preview-graph');
+                        if (result.message) {
+                            alert(result.message);
+                        }
+                        if (result.gitInfo) {
+                            console.log('Update git info', result.gitInfo);
+                            drawGitGraph(result.gitInfo, 'preview-graph');
+                        }
                     }
-
                 } catch (error) {
                     console.error('Error executing git command:', error);
                     alert('Error executing git command: ' + error.message);
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     runAllButton.addEventListener('click', async () => {
         try {
+            updatesEnabled = false;
             const commands = Array.from(commandList.children).map(li => li.textContent);
 
             //檢查每個命令是否符合觸發點
@@ -104,10 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = `login.html?redirect=${redirectUrl}`;
                     return;
                 }
-                // else {
-                //     alert('You need to log in to execute the workflows.');
-                //     return;
-                // }
             }
 
             while (commandList.children.length > 0) {
@@ -122,14 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await window.electron.executeGitCommand({ command, folderPath: currentFolderPath, isPushCheckOnly });
                 if (result.message) {
                     alert(result.message);
-                } else if (result.conflict) {
-                    alert('Conflicts detected:\n' + result.conflicts);
-                } else {
+                }
+                if(result.gitInfo){
                     console.log(`Command executed: ${command}`);
-                    lastGitInfo = result;
-                    localStorage.setItem('gitInfo', JSON.stringify(result));
-                    localStorage.setItem('lastGitInfo', JSON.stringify(result));// 更新 localStorage 中的 lastGitInfo
-                    drawGitGraph(result, 'formal-graph');
+                    lastGitInfo = result.gitInfo;
+                    localStorage.setItem('gitInfo', JSON.stringify(result.gitInfo));
+                    localStorage.setItem('lastGitInfo', JSON.stringify(result.gitInfo));
+                    drawGitGraph(result.gitInfo, 'formal-graph');
+                }
+                else if (result.conflict) {
+                    alert('Conflicts detected:\n' + result.conflicts);
                 }
 
                 if (command.startsWith('git')) {
@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error executing commands:', error);
             alert('Error executing commands: ' + error.message);
         } finally {
+            updatesEnabled = true;
             updateRunAllButtonStatus();
         }
         localStorage.removeItem('commands');

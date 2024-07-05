@@ -5,6 +5,7 @@ let tempFolderPath = localStorage.getItem('tempFolderPath') || '';
 let gitInfo = localStorage.getItem('gitInfo') || '';
 let gitInfoTemp = localStorage.getItem('gitInfoTemp') || '';
 let lastGitInfo = JSON.parse(localStorage.getItem('lastGitInfo')) || null; // 儲存最後的 Git 資料
+let updatesEnabled = true;
 
 document.addEventListener('DOMContentLoaded', () => {
   if (currentFolderPath && tempFolderPath) {
@@ -85,7 +86,7 @@ async function processFolderInfo(folderPath, gitExists) {
 
 async function checkForUpdates() {
   setInterval(async () => {
-    if (!folderSelected || !currentFolderPath) return;
+    if (!updatesEnabled || !folderSelected || !currentFolderPath) return;
 
     try {
       const newGitInfo = await window.electron.getGitInfo(currentFolderPath);
