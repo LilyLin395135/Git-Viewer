@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         if (result.gitInfo) {
                             console.log('Update git info', result.gitInfo);
-                            drawGitGraph(result.gitInfo, 'preview-graph');
+                            drawGitGraph(result.gitInfo, 'preview-graph', tempFolderPath);
                         }
                     }
                 } catch (error) {
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lastGitInfo = result.gitInfo;
                     localStorage.setItem('gitInfo', JSON.stringify(result.gitInfo));
                     localStorage.setItem('lastGitInfo', JSON.stringify(result.gitInfo));
-                    drawGitGraph(result.gitInfo, 'formal-graph');
+                    drawGitGraph(result.gitInfo, 'formal-graph', currentFolderPath);
                 }
                 else if (result.conflict) {
                     alert('Conflicts detected:\n' + result.conflicts);

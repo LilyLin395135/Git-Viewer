@@ -6,7 +6,7 @@ import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
 import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
-import { initGit, getGitInfo } from './utils/gitInfo.js'
+import { initGit, getGitInfo, getCommitMessage } from './utils/gitInformation.js'
 import { formatStatus } from './utils/gitCommands.js';
 import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
@@ -117,6 +117,16 @@ ipcMain.handle('get-git-info', async (event, folderPath) => {
     return gitInfo;
   } catch (error) {
     console.error('Error in get-git-info:', error);
+    return { error: error.message || 'Unknown error' };
+  }
+});
+
+ipcMain.handle('fetch-commit-message', async (event, { hash, folderPath }) => {
+  try {
+    const commitMessage = await getCommitMessage(hash, folderPath);
+    return commitMessage;
+} catch (error) {
+    console.error(`Error fetching commit message for hash ${hash}:`, error);
     return { error: error.message || 'Unknown error' };
   }
 });

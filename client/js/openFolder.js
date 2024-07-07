@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateInitButtonStatus(currentFolderPath, true);
     loadGraphFromLocalStorage('formal-graph');
     loadGraphFromLocalStorage('preview-graph');
-    checkForUpdates();
+    // checkForUpdates();
   }
 });
 
@@ -76,12 +76,12 @@ async function processFolderInfo(folderPath, gitExists) {
 
   lastGitInfo = gitInfo; // 保存初始化的 Git 資料
 
-  drawGitGraph(gitInfo, 'formal-graph');
-  drawGitGraph(gitInfoTemp, 'preview-graph');
+  drawGitGraph(gitInfo, 'formal-graph', currentFolderPath);
+  drawGitGraph(gitInfoTemp, 'preview-graph', tempFolderPath);
   console.log('Selected folder:', currentFolderPath);
   console.log('Temp folder:', tempFolderPath);
 
-  checkForUpdates(); // 開始檢查更新
+  // checkForUpdates(); // 開始檢查更新
 }
 
 async function checkForUpdates() {

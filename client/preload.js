@@ -18,5 +18,6 @@ contextBridge.exposeInMainWorld('electron', {
   findGitRoot: (folderPath) => ipcRenderer.invoke('findGitRoot', folderPath),
   findYmlFiles: (rootDir) => ipcRenderer.invoke('findYmlFiles', rootDir),
   register: (email, password) => ipcRenderer.invoke('register', { email, password }),
-  login: (email, password) => ipcRenderer.invoke('login', { email, password })
+  login: (email, password) => ipcRenderer.invoke('login', { email, password }),
+  fetchCommitMessage: (hash, folderPath) => ipcRenderer.invoke('fetch-commit-message', { hash, folderPath }),
 });
