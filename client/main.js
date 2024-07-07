@@ -57,7 +57,7 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
 
 ipcMain.handle('register', async (event, { email, password }) => {
   try {
-    const response = await fetch('http://localhost:3000/api/user/signup', {
+    const response = await fetch(`${process.env.URL}/api/user/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -80,7 +80,7 @@ ipcMain.handle('register', async (event, { email, password }) => {
 
 ipcMain.handle('login', async (event, { email, password }) => {
   try {
-    const response = await fetch('http://localhost:3000/api/user/signin', {
+    const response = await fetch(`${process.env.URL}/api/user/signin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

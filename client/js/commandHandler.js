@@ -14,12 +14,27 @@ const updateRunAllButtonStatus = () => {
     }
 };
 
+// const loadCommands = () => {
+//     const commands = JSON.parse(localStorage.getItem('commands') || '[]');
+//     commands.forEach(cmd => {
+//         const listItem = document.createElement('li');
+//         listItem.textContent = cmd;
+//         commandList.appendChild(listItem);
+//     });
+//     commandInput.value = localStorage.getItem('currentCommand') || '';
+//     updateRunAllButtonStatus();
+// };
+
+// const saveCommands = () => {
+//     const commands = Array.from(commandList.querySelectorAll('li')).map(li => li.textContent);
+//     localStorage.setItem('commands', JSON.stringify(commands));
+//     localStorage.setItem('currentCommand', commandInput.value);
+// };
+
 const loadCommands = () => {
     const commands = JSON.parse(localStorage.getItem('commands') || '[]');
     commands.forEach(cmd => {
-        const listItem = document.createElement('li');
-        listItem.textContent = cmd;
-        commandList.appendChild(listItem);
+        addCommandToList(cmd);
     });
     commandInput.value = localStorage.getItem('currentCommand') || '';
     updateRunAllButtonStatus();
@@ -29,6 +44,23 @@ const saveCommands = () => {
     const commands = Array.from(commandList.querySelectorAll('li')).map(li => li.textContent);
     localStorage.setItem('commands', JSON.stringify(commands));
     localStorage.setItem('currentCommand', commandInput.value);
+};
+
+const addCommandToList = (command) => {
+    const listItem = document.createElement('li');
+    listItem.textContent = command;
+
+    const deleteButton = document.createElement('span');
+    deleteButton.textContent = ' x';
+    deleteButton.className = 'delete-btn';
+    deleteButton.onclick = () => {
+        listItem.remove();
+        saveCommands();
+        updateRunAllButtonStatus();
+    };
+
+    listItem.appendChild(deleteButton);
+    commandList.appendChild(listItem);
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.message) {
                     alert(result.message);
                 }
-                if(result.gitInfo){
+                if (result.gitInfo) {
                     console.log(`Command executed: ${command}`);
                     lastGitInfo = result.gitInfo;
                     localStorage.setItem('gitInfo', JSON.stringify(result.gitInfo));

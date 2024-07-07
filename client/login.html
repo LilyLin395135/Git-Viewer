@@ -1,20 +1,35 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Login</title>
   <meta http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48">
+  <link rel="stylesheet" type="text/css" href="stylesheet/register.css">
+  <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
+  <script defer src="./js/loadHeader.js"></script>
   <script defer src="./js/login.js"></script>
 </head>
+
 <body>
-  <h1>Login</h1>
-  <form id="loginForm">
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
-    <button type="submit">Login</button>
-  </form>
-  <p>Don't have an account? <a id="registerLink" href="#">Register here</a></p>
+  <div id="header"></div>
+  <div class="container">
+    <div class="form-container">
+      <h1>Login</h1>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+      <p>Don't have an account? <a id="registerLink" href="#">Register here</a></p>
+    </div>
+  </div>
 </body>
+
 </html>

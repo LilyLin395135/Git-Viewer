@@ -50,7 +50,7 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
   if (UntrackedFiles.length > 0 || ChangesNotStaged.length > 0) {
     additionalNodes.push({
       x: 0 - 2 * nodeRadius,
-      y: svgHeight - nodeRadius*4,
+      y: svgHeight - nodeRadius * 4,
       type: 'untracked',
       data: [...UntrackedFiles, ...ChangesNotStaged],
       title: 'Untracked and Not Staged Files'
@@ -60,7 +60,7 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
   if (ChangesToBeCommitted.length > 0) {
     additionalNodes.push({
       x: 0 + 2 * nodeRadius,
-      y: svgHeight - nodeRadius*4,
+      y: svgHeight - nodeRadius * 4,
       type: 'staged',
       data: ChangesToBeCommitted,
       title: 'Changes To Be Committed'
@@ -126,7 +126,7 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
       // 維持在branchMap中的位置
       x = branchMap.get(hash);
     }
-    y = svgHeight - ((index+1) * nodeSpacing + nodeRadius*4);
+    y = svgHeight - ((index + 1) * nodeSpacing + nodeRadius * 4);
 
     nodes.push({
       id: hash,
@@ -144,14 +144,17 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
       parents: [parent1, parent2]
     };
 
+    const labelIndex = logOutput.length - index - 1;
+
     // 畫出當前節點
     drawNode(svg, {
       id: hash,
       // message: commitMessages.find(commit => commit.hash.startsWith(hash)).message,
       x: x * xSpacing,
       y,
-      isMainLine: x === 0
-    }, nodeRadius, offsetX, folderPath, index);
+      isMainLine: x === 0,
+      label: `C${labelIndex}`
+    }, nodeRadius, offsetX, folderPath);
 
     // 画连接线
     if (lastNode.has(x) && commitMap[lastNode.get(x).id].parents.includes(hash)) {
@@ -218,7 +221,7 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
   };
 };
 
-const drawNode = (svg, node, radius, offsetX, folderPath, index) => {
+const drawNode = (svg, node, radius, offsetX, folderPath) => {
   const nodeGroup = svg.append('g')
     .attr('class', 'node')
     .attr('transform', `translate(${node.x + offsetX}, ${node.y})`);
@@ -260,7 +263,7 @@ const drawNode = (svg, node, radius, offsetX, folderPath, index) => {
     .attr('y', 5)
     .attr('text-anchor', 'middle')
     .attr('fill', 'white')
-    .text(`C${index}`.substring(0, 5));
+    .text(node.label);
 };
 
 const drawLink = (svg, link, offsetX) => {

@@ -5,8 +5,7 @@ let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
-    // userId = localStorage.getItem('userId');
-    userId = 1;
+    userId = localStorage.getItem('userId');
     if (!userId) {
         alert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);
@@ -28,45 +27,6 @@ function fetchWorkflowDetails(workflowId) {
     showLog(workflowId);
 }
 
-// async function loadSideBar() {
-//     const sidebar = document.querySelector('.sidebar');
-//     try {
-//         const response = await fetch(`${URL}/api/workflow/user/${userId}`);
-//         const workflows = await response.json();
-//         const projects = groupWorkflowsByProject(workflows);
-//         let listHtml = '<ul>';
-
-//         for (const [projectId, details] of Object.entries(projects)) {
-//             const isLastActive = lastActiveProjectId === projectId;
-//             listHtml += `
-//                 <li class="project-folder" onclick="toggleWorkflows(this, '${projectId}')">
-//                     <span>${details.projectFolder}</span>
-//                 </li>
-//                 <div class="workflow-names" style="${isLastActive ? 'display: block;' : 'display: none;'}">`;
-//             listHtml += `<li data-name="All Workflows" data-project="${projectId}" class="${!lastActiveWorkflowName && isLastActive ? 'active' : ''}">All Workflows</li>`;
-//             details.uniqueWorkflowNames.forEach(name => {
-//                 listHtml += `<li data-name="${name}" data-project="${projectId}" class="${name === lastActiveWorkflowName && isLastActive ? 'active' : ''}" style="margin-left: 20px;">${name}</li>`;
-//             });
-//             listHtml += `</div>`;
-//         }
-
-//         listHtml += '</ul>';
-//         sidebar.innerHTML = listHtml;
-
-//         sidebar.querySelectorAll('li[data-name]').forEach(item => {
-//             item.addEventListener('click', function () {
-//                 document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
-//                 this.classList.add('active');
-//                 lastActiveWorkflowName = this.dataset.name;
-//                 lastActiveProjectId = this.dataset.project;
-//                 loadWorkflowList(this.dataset.name, this.dataset.project);
-//             });
-//         });
-//     } catch (error) {
-//         console.error('Failed to load workflow names:', error);
-//         sidebar.innerHTML = '<p>Error loading workflow names.</p>';
-//     }
-// }
 async function loadSideBar() {
     const sidebar = document.querySelector('.workflow-nav');
     try {
@@ -82,9 +42,9 @@ async function loadSideBar() {
                     <span>${details.projectFolder}</span>
                 </li>
                 <div class="workflow-names" style="${isLastActive ? 'display: block;' : 'display: none;'}">`;
-            listHtml += `<li data-name="All Workflows" data-project="${projectId}" class="action-list-item ${!lastActiveWorkflowName && isLastActive ? 'active' : ''}">All Workflows</li>`;
+            listHtml += `<div data-name="All Workflows" data-project="${projectId}" class="action-list-item ${!lastActiveWorkflowName && isLastActive ? 'active' : ''}">All Workflows</div>`;
             details.uniqueWorkflowNames.forEach(name => {
-                listHtml += `<li data-name="${name}" data-project="${projectId}" class="action-list-item ${name === lastActiveWorkflowName && isLastActive ? 'active' : ''}" style="margin-left: 20px;">${name}</li>`;
+                listHtml += `<div data-name="${name}" data-project="${projectId}" class="action-list-item ${name === lastActiveWorkflowName && isLastActive ? 'active' : ''}" style="margin-left: 20px;">${name}</div>`;
             });
             listHtml += `</div>`;
         }
@@ -92,9 +52,9 @@ async function loadSideBar() {
         listHtml += '</ul>';
         sidebar.innerHTML = listHtml;
 
-        sidebar.querySelectorAll('li[data-name]').forEach(item => {
+        sidebar.querySelectorAll('div[data-name]').forEach(item => {
             item.addEventListener('click', function () {
-                document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+                document.querySelectorAll('.sidebar div').forEach(div => div.classList.remove('active'));
                 this.classList.add('active');
                 lastActiveWorkflowName = this.dataset.name;
                 lastActiveProjectId = this.dataset.project;
@@ -145,28 +105,6 @@ async function loadWorkflowList(workflowName = 'All Workflows', projectId = null
     }
 }
 
-// function displayWorkflows(workflows, content) {
-//     let listHtml = '<div class="workflow-list">';
-//     workflows.forEach(workflow => {
-//         listHtml += `
-//             <div class="workflow-item" id="workflow-${workflow.id}">
-//                 ${getStatusIcon(workflow.status)}
-//                 <span class="workflow-commit" onclick="showLog(${workflow.id})">${workflow.commit_message}</span>
-//                 <div>
-//                     <span>${workflow.workflow_name} (#${workflow.id})</span>
-//                     <span>${workflow.commit_hash}</span>
-//                 </div>
-//                 <div>
-//                     <span>Branch: ${workflow.branch || 'N/A'}</span>
-//                     <span>Started: ${formatDate(workflow.start_queue_time)}</span>
-//                     <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
-//                 </div>
-//             </div>`;
-//     });
-//     listHtml += '</div>';
-//     content.innerHTML = listHtml;
-// }
-
 function displayWorkflows(workflows, content) {
     let listHtml = `
         <div class="Box Box--responsive mt-3" data-issue-and-pr-hovercards-enabled data-hpc>
@@ -216,17 +154,6 @@ function displayWorkflows(workflows, content) {
     content.innerHTML = listHtml;
 }
 
-// function getStatusIcon(status) {
-//     switch (status) {
-//         case 0: return 'Queued';
-//         case 1: return 'Processing';
-//         case 2: return 'Success';
-//         case 3: return 'Failure';
-//         case 4: return 'SuccessAndComplete';
-//         case 5: return 'CompleteButFail';
-//         default: return 'Unknown';
-//     }
-// }
 function getStatusIcon(status) {
     switch (status) {
         case 0: return '<span class="workflow-status" title="Queued"><svg width="16" height="16" class="octicon queued-icon" viewBox="0 0 16 16" version="1.1" role="img"><circle cx="8" cy="8" r="7" class="queued-circle"/></svg></span>';
@@ -270,32 +197,6 @@ function startPolling(workflowId) {
     }, 1000); // 每秒輪詢一次
 }
 
-// function updateLogContent(workflow) {
-//     const sidebar = document.querySelector('.workflow-nav');
-//     sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflow.id})"> ← Back to Workflows</li></ul>`;
-
-//     const content = document.querySelector('.content');
-//     content.innerHTML = `
-//         <div class="workflow-summary">
-//             <div>
-//                 <span>${daysAgo(workflow.start_queue_time)} days ago</span>
-//                 <span>Action: ${workflow.action}, Branch: ${workflow.branch}</span>
-//             </div>
-//             <div>
-//                 <span>Status: ${getStatusIcon(workflow.status)}</span>
-//             </div>
-//             <div>
-//                 <span>Duration: ${calculateDuration(workflow.start_queue_time, workflow.finish_execute_time)}</span>
-//             </div>
-//             <div>
-//                 <span>Execution Time: ${calculateDuration(workflow.start_execute_time, workflow.finish_execute_time)}</span>
-//             </div>
-//         </div>
-//         <div class="workflow-log">
-//             <pre>${workflow.log}</pre>
-//         </div>
-//     `;
-// }
 function updateLogContent(workflow) {
     const sidebar = document.querySelector('.workflow-nav');
     sidebar.innerHTML = `<ul><li onclick="goBackToWorkflow(${workflow.id})"> &larr; Back to Workflows</li></ul>`;

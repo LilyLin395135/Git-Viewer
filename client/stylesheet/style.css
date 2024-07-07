@@ -9,16 +9,25 @@ body {
 .content {
     display: flex;
     flex: 1;
-    margin-top: 60px; /* 添加這行，確保 .content 在 .header 下方 */
+    margin-top: 60px;
+    /* 添加這行，確保 .content 在 .header 下方 */
 }
 
 .sidebar {
-    width: 300px;
+    /* width: 300px;
     background-color: #f0f0f0;
     padding: 10px;
     box-sizing: border-box;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; */
+    width: 300px;
+    background-color: #f6f8fa;
+    overflow-y: auto;
+    height: calc(100% - 50px);
+    position: fixed;
+    border-right: 1px solid #e1e4e8;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .main {
@@ -33,6 +42,7 @@ body {
     flex: 1;
     justify-content: space-between;
     height: 100%;
+    margin-left: 300px;
 }
 
 .graph {
@@ -40,22 +50,26 @@ body {
     margin: 10px;
     display: flex;
     justify-content: center;
-    align-items: start; /* 讓graph容器從頂部開始排列，滾輪捲動可以滾到最上面 */
+    align-items: start;
+    /* 讓graph容器從頂部開始排列，滾輪捲動可以滾到最上面 */
     background-color: #ffffff;
     border: 1px solid #ddd;
-    height: calc(100vh - 150px); /* 100vh 减去 terminal 的高度和一些額外的空間 */
-    overflow-y: auto; /* 允許垂直滾動 */
+    height: calc(100% - 20px);
+    /* 100vh 减去 terminal 的高度和一些額外的空間 */
+    overflow-y: auto;
+    /* 允許垂直滾動 */
+    border-radius: 10px;
 }
 
-.terminal {
+/* .terminal {
     height: 150px;
     background-color: #000;
     color: #fff;
     padding: 10px;
     box-sizing: border-box;
-    overflow-y: auto;/* 允許垂直滾動 */
-    resize: vertical; /* 允許垂直方向調整大小 */
-}
+    overflow-y: auto;
+    resize: vertical;
+} */
 
 #command-list {
     list-style-type: none;
@@ -75,21 +89,27 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
-    height: 200px; /* 設置固定高度 */
-    overflow-y: auto; /* 內容超出時顯示滾動條 */
+    height: 200px;
+    /* 設置固定高度 */
+    overflow-y: auto;
+    /* 內容超出時顯示滾動條 */
+    border-radius: 6px;
 }
 
 .box-header {
-    flex: 0 0 auto; /* 使標頭不會隨內容滾動 */
-    background-color: #f0f0f0; /* 你可以根據需要設置背景色 */
+    flex: 0 0 auto;
+    /* 使標頭不會隨內容滾動 */
+    /* background-color: #f0f0f0; 你可以根據需要設置背景色 */
     /* padding-bottom: 10px;
     margin-bottom: 10px; */
-    text-align: center; /* 水平置中 */
+    text-align: center;
+    /* 水平置中 */
 }
 
 .box-content {
     flex: 1 1 auto;
-    overflow-y: auto; /* 內容超出時顯示滾動條 */
+    overflow-y: auto;
+    /* 內容超出時顯示滾動條 */
 }
 
 #ai-dialog {
@@ -100,9 +120,15 @@ body {
     background-color: #3b93f8;
     color: white;
     border: none;
-    padding: 5px;
+    /* padding: 5px;
     cursor: pointer;
-    align-self: flex-end;
+    align-self: flex-end; */
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 10px;
 }
 
 #ai-input,
@@ -111,6 +137,7 @@ body {
     box-sizing: border-box;
     padding: 5px;
     margin-top: auto;
+    border-radius: 6px;
 }
 
 .box label {
@@ -173,8 +200,10 @@ body {
 }
 
 #workflow-secrets {
-    max-height: 200px; /* 設置固定高度 */
-    overflow-y: auto; /* 內容超出時顯示垂直滾動條 */
+    max-height: 200px;
+    /* 設置固定高度 */
+    overflow-y: auto;
+    /* 內容超出時顯示垂直滾動條 */
     border: 1px solid #ddd;
     padding: 10px;
     box-sizing: border-box;
@@ -198,7 +227,8 @@ body {
 .secret-actions {
     flex: 1;
     text-align: right;
-    display: flex; /* 讓按鈕水平排列 */
+    display: flex;
+    /* 讓按鈕水平排列 */
     justify-content: flex-end;
 }
 
@@ -208,4 +238,10 @@ body {
 
 #workflow-secrets .box-header {
     padding-bottom: 6px;
+}
+
+.delete-btn {
+    margin-left: 10px;
+    cursor: pointer;
+    color: red;
 }

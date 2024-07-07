@@ -6,6 +6,7 @@ let gitInfo = localStorage.getItem('gitInfo') || '';
 let gitInfoTemp = localStorage.getItem('gitInfoTemp') || '';
 let lastGitInfo = JSON.parse(localStorage.getItem('lastGitInfo')) || null; // 儲存最後的 Git 資料
 let updatesEnabled = true;
+let updateInterval; // 用于存储 setInterval 的返回值
 
 document.addEventListener('DOMContentLoaded', () => {
   if (currentFolderPath && tempFolderPath) {
@@ -13,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateInitButtonStatus(currentFolderPath, true);
     loadGraphFromLocalStorage('formal-graph');
     loadGraphFromLocalStorage('preview-graph');
-    // checkForUpdates();
+    checkForUpdates();
   }
 });
 
@@ -81,17 +82,18 @@ async function processFolderInfo(folderPath, gitExists) {
   console.log('Selected folder:', currentFolderPath);
   console.log('Temp folder:', tempFolderPath);
 
-  // checkForUpdates(); // 開始檢查更新
+  checkForUpdates(); // 開始檢查更新
 }
 
 async function checkForUpdates() {
-  setInterval(async () => {
+  updateInterval = setInterval(async () => {
     if (!updatesEnabled || !folderSelected || !currentFolderPath) return;
 
     try {
       const newGitInfo = await window.electron.getGitInfo(currentFolderPath);
       if (newGitInfo.error) {
         console.error('Error fetching new git info:', newGitInfo.error);
+        stopCheckForUpdates(); // 停止检查更新
         return;
       }
 
@@ -109,6 +111,11 @@ async function checkForUpdates() {
       }
     } catch (error) {
       console.error('Error fetching git info:', error);
+      stopCheckForUpdates(); // 停止检查更新
     }
   }, 1000);//每1秒檢查一次
 };
+
+function stopCheckForUpdates() {
+  clearInterval(updateInterval);
+}
