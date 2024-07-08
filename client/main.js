@@ -11,6 +11,8 @@ import { formatStatus } from './utils/gitCommands.js';
 import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
 import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
+import pkg from 'electron-updater';
+const { autoUpdater } = pkg;
 
 dotenv.config();
 console.log(process.env.URL);
@@ -37,6 +39,10 @@ function createWindow() {
     icon: path.join(appDirectory, 'assets', 'logo_GV_1.png') //應用程式logo
   });
   mainWindow.loadFile(path.join(appDirectory, 'dist/git-viewer.html'));
+
+  mainWindow.once('ready-to-show', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+  });
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求
@@ -125,7 +131,7 @@ ipcMain.handle('fetch-commit-message', async (event, { hash, folderPath }) => {
   try {
     const commitMessage = await getCommitMessage(hash, folderPath);
     return commitMessage;
-} catch (error) {
+  } catch (error) {
     console.error(`Error fetching commit message for hash ${hash}:`, error);
     return { error: error.message || 'Unknown error' };
   }
@@ -482,4 +488,17 @@ app.on('active', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+// 自動更新事件
+autoUpdater.on('update-available', () => {
+  console.log('A new update is available');
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('Update downloaded');
+});
+
+autoUpdater.on('error', (error) => {
+  console.error('Error in auto-updater:', error);
 });

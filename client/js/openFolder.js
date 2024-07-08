@@ -113,7 +113,7 @@ async function checkForUpdates() {
       console.error('Error fetching git info:', error);
       stopCheckForUpdates(); // 停止检查更新
     }
-  }, 1000);//每1秒檢查一次
+  }, 5000);//每5秒檢查一次
 };
 
 function stopCheckForUpdates() {

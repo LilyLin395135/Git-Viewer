@@ -1,5 +1,5 @@
 const clearGraph = (graphId) => {
-  d3.select(`#${graphId}`).selectAll('*').remove();
+  d3.select(`#${graphId} svg`).remove(); //不移除標籤
 };
 
 const loadGraphFromLocalStorage = (graphId) => {
