@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # 當推送符合 v*.*.* 格式的標籤時觸發工作流程
+
+jobs:
+  release:
+    runs-on: ubuntu-latest # 工作流程在最新版本的 Ubuntu 上運行
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        # 使用 GitHub Actions 提供的 checkout 動作檢出代碼
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21.7.1' # 設置 Node.js 版本為 21.7.1
+
+      - name: Install dependencies
+        run: npm install
+        # 安裝項目依賴
+
+      - name: Build Electron app
+        run: npm run electron:build
+        # 構建 Electron 應用程序
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: release
+        # 上傳構建結果作為工件，供後續步驟使用
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+        # 創建 GitHub Release，使用環境變量 GITHUB_TOKEN 進行身份驗證
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/*.exe
+          asset_name: GitViewer-Setup-${{ github.ref }}.exe
+          asset_content_type: application/octet-stream
+        # 上傳構建生成的可執行文件作為發布資產
