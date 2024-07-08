@@ -8,14 +8,14 @@ import ignore from 'ignore';
 import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { initGit, getGitInfo, getCommitMessage } from './utils/gitInformation.js'
 import { formatStatus } from './utils/gitCommands.js';
-import { createGitInfo, deleteGitInfo } from './database.js';
+// import { createGitInfo, deleteGitInfo } from './database.js';
 import dotenv from 'dotenv';
 import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
 import pkg from 'electron-updater';
 const { autoUpdater } = pkg;
 
 dotenv.config();
-console.log(process.env.URL);
+const URL='http://52.5.238.48';
 
 // chrome debug tool
 if (process.env.NODE_ENV !== 'production') {
@@ -63,7 +63,7 @@ ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC 
 
 ipcMain.handle('register', async (event, { email, password }) => {
   try {
-    const response = await fetch(`${process.env.URL}/api/user/signup`, {
+    const response = await fetch(`${URL}/api/user/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -86,7 +86,7 @@ ipcMain.handle('register', async (event, { email, password }) => {
 
 ipcMain.handle('login', async (event, { email, password }) => {
   try {
-    const response = await fetch(`${process.env.URL}/api/user/signin`, {
+    const response = await fetch(`${URL}/api/user/signin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -166,21 +166,32 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
 
     // 複製文件和目錄，同時排除 .gitignore 中的文件
     const copyFolderRecursive = async (source, target) => {
-      const entries = fs.readdirSync(source, { withFileTypes: true });
-      for (const entry of entries) {
-        const sourcePath = path.join(source, entry.name);
-        const targetPath = path.join(target, entry.name);
-        const relativePath = path.relative(sourceFolderPath, sourcePath);
-        if (ig.ignores(relativePath)) continue;
+      try {
+        const entries = fs.readdirSync(source, { withFileTypes: true });
+        for (const entry of entries) {
+          const sourcePath = path.join(source, entry.name);
+          const targetPath = path.join(target, entry.name);
+          const relativePath = path.relative(sourceFolderPath, sourcePath);
 
-        if (entry.isDirectory()) {
-          fse.mkdirSync(targetPath, { recursive: true });
-          await copyFolderRecursive(sourcePath, targetPath);
-        } else {
-          fse.copyFileSync(sourcePath, targetPath);
+          // console.log(`Processing ${relativePath}`);
+
+          if (ig.ignores(relativePath)) {
+            // console.log(`Ignored ${relativePath}`);
+            continue;
+          }
+
+          if (entry.isDirectory()) {
+            fse.mkdirSync(targetPath, { recursive: true });
+            await copyFolderRecursive(sourcePath, targetPath);
+          } else {
+            fse.copyFileSync(sourcePath, targetPath);
+          }
         }
+      } catch (err) {
+        console.error(`Error copying ${source} to ${target}:`, err);
+        throw err;
       }
-    };
+    }
 
     await copyFolderRecursive(sourceFolderPath, tempFolderPath);
 
@@ -400,21 +411,34 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         resultMessage = diffResult;
         break;
 
+      case 'reset':
+        if (args[0] === '--soft' && args[1].startsWith('HEAD~')) {
+          await git.raw(['reset', '--soft', args[1]]);
+          resultMessage = 'Reset the last commit.';
+        } else if (args[0] === 'origin' && args[1] === '+HEAD') {
+          await git.raw(['push', 'origin', '+HEAD']);
+          resultMessage = 'Forced pushed the HEAD.';
+        } else {
+          await git.reset(args);
+          resultMessage = 'Reset the repository.';
+        }
+        break;
+
       default:
         const rawResult = await git.raw([mainCommand, ...args]);
         resultMessage = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
     }
 
     const gitInfo = await getGitInfo(folderPath);
-    await new Promise((resolve, reject) => {
-      createGitInfo(gitInfo, (err, id) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(id);
-        }
-      });
-    });
+    // await new Promise((resolve, reject) => {
+    //   createGitInfo(gitInfo, (err, id) => {
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       resolve(id);
+    //     }
+    //   });
+    // });
     return { message: resultMessage, gitInfo };
   } catch (error) {
     console.error('Error executing git command:', error);
@@ -443,7 +467,7 @@ ipcMain.handle('trigger-workflows', async (event, { userId, eventTriggered, fold
       commitMessage
     } = await triggerWorkflows(eventTriggered, folderPath);
 
-    const response = await axios.post(`${process.env.URL}/api/workflow/trigger`, {
+    const response = await axios.post(`${URL}/api/workflow/trigger`, {
       userId,
       event: eventTriggered,
       ymlContent,
@@ -460,21 +484,21 @@ ipcMain.handle('trigger-workflows', async (event, { userId, eventTriggered, fold
   }
 });
 
-ipcMain.handle('create-git-info', async (event, gitInfo) => {
-  return new Promise((resolve, reject) => {
-    createGitInfo(gitInfo, (err, id) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(id);
-      }
-    });
-  });
-});
+// ipcMain.handle('create-git-info', async (event, gitInfo) => {
+//   return new Promise((resolve, reject) => {
+//     createGitInfo(gitInfo, (err, id) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve(id);
+//       }
+//     });
+//   });
+// });
 
-ipcMain.handle('delete-git-info', () => {
-  deleteGitInfo();
-});
+// ipcMain.handle('delete-git-info', () => {
+//   deleteGitInfo();
+// });
 
 app.whenReady().then(createWindow);
 

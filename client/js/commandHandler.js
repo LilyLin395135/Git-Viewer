@@ -41,7 +41,10 @@ const loadCommands = () => {
 };
 
 const saveCommands = () => {
-    const commands = Array.from(commandList.querySelectorAll('li')).map(li => li.textContent);
+    const commands = Array.from(commandList.querySelectorAll('li')).map(li => {
+        // 返回 <li> 元素的第一部分内容，而不是整個内容
+        return li.childNodes[0].textContent.trim();
+    });
     localStorage.setItem('commands', JSON.stringify(commands));
     localStorage.setItem('currentCommand', commandInput.value);
 };
@@ -87,9 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
                     if (!confirmPush) return;
                 }
-                const listItem = document.createElement('li');
-                listItem.textContent = command;
-                commandList.appendChild(listItem);
+                // const listItem = document.createElement('li');
+                // listItem.textContent = command;
+                // commandList.appendChild(listItem);
+                addCommandToList(command);
                 commandInput.value = '';
                 saveCommands();
                 commandExists = true;
@@ -122,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
     runAllButton.addEventListener('click', async () => {
         try {
             updatesEnabled = false;
-            const commands = Array.from(commandList.children).map(li => li.textContent);
+            const commands = Array.from(commandList.children).map(li => {
+                // 返回 <li> 元素的第一部分内容，而不是整個内容
+                return li.childNodes[0].textContent.trim();
+            });
 
             //檢查每個命令是否符合觸發點
             const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
@@ -142,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             while (commandList.children.length > 0) {
                 const commandElement = commandList.children[0];
-                const command = commandElement.textContent;
+                const command = commandElement.childNodes[0].textContent.trim();
                 commandList.removeChild(commandElement);
 
                 if (command.startsWith('git push')) {
