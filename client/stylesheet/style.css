@@ -49,9 +49,9 @@ body {
 }
 
 .graph {
-    flex: 1;
+    /* flex: 1; */
     margin: 10px;
-    display: flex;
+    /* display: flex; */
     justify-content: center;
     align-items: start;
     /* 讓graph容器從頂部開始排列，滾輪捲動可以滾到最上面 */
@@ -62,6 +62,8 @@ body {
     overflow-y: auto;
     /* 允許垂直滾動 */
     border-radius: 10px;
+    /* flex-direction: column; */
+    width: 50%;
 }
 
 /* .terminal {
@@ -244,19 +246,24 @@ body {
 }
 
 .delete-btn {
-    margin-left: 10px;
+    margin-left: auto;
+    /* 使用 auto 以推送到右側 */
     cursor: pointer;
-    color: red;
+    color: rgb(205, 203, 203);
 }
 
 .graph-label {
-    position: absolute;
-    top: 10px; /* 与容器顶部的距离 */
-    left: 10px; /* 与容器左侧的距离 */
-    background-color: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+    position: sticky;
+    top: 10px;
+    /* 与容器顶部的距离 */
+    left: 10px;
+    /* 与容器左侧的距离 */
+    background-color: rgba(255, 255, 255, 0.8);
+    /* 半透明背景 */
     padding: 5px 10px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-weight: bold;
-    z-index: 1; /* 确保标签在最前面 */
+    z-index: 1;
+    width: 150px;
 }

@@ -1,12 +1,12 @@
 const clearGraph = (graphId) => {
-  d3.select(`#${graphId} svg`).remove(); //不移除標籤
+  d3.select(`#${graphId}`).select('svg').remove();
 };
 
 const loadGraphFromLocalStorage = (graphId) => {
   const storedSvgHtml = localStorage.getItem(`graphContent_${graphId}`);
   if (storedSvgHtml) {
     const container = document.getElementById(graphId);
-    container.innerHTML = storedSvgHtml;
+    container.innerHTML += storedSvgHtml;
   }
 };
 

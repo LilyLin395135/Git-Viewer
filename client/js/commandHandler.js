@@ -51,7 +51,12 @@ const saveCommands = () => {
 
 const addCommandToList = (command) => {
     const listItem = document.createElement('li');
-    listItem.textContent = command;
+    listItem.style.display = 'flex';  // 添加這行以支持彈性盒子
+    listItem.style.justifyContent = 'space-between';  // 添加這行以支持內容分佈
+    listItem.style.alignItems = 'center';  // 確保項目在垂直方向上居中對齊
+
+    const textNode = document.createTextNode(command);
+    listItem.appendChild(textNode);
 
     const deleteButton = document.createElement('span');
     deleteButton.textContent = ' x';

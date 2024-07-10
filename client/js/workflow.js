@@ -6,6 +6,7 @@ let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
     userId = localStorage.getItem('userId');
+    // userId = 1;
     if (!userId) {
         alert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);
