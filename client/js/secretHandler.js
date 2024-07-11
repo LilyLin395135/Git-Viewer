@@ -121,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
         newSecretForm.classList.remove('hidden');
         secretsList.style.display = 'none';
         noSecretsMessage.style.display = 'none';
+        secretNameInput.value = '';  // 清除名稱輸入欄位的值
+        secretValueInput.value = '';  // 清除值輸入欄位的值
     }
 
     function openEditSecretModal(secretId) {
