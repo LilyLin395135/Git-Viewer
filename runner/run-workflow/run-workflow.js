@@ -79,11 +79,10 @@ const replaceSecrets = (script, secrets) => {
               sshCommand = sshCommand.replace('ssh', 'ssh -o StrictHostKeyChecking=no');
             } else {
               const fullCommand = `${cmd.replace(/\\n/g, '\n')} && if [ $? -ne 0 ]; then exit 1; fi`;
-              command += `${fullCommand} && `;
+              command += `${fullCommand} \n `;
             }
           });
 
-          // 移除最後的 ' && '
           if (command.endsWith(' && ')) {
             command = command.slice(0, -4);
           }
@@ -94,6 +93,7 @@ const replaceSecrets = (script, secrets) => {
           stepLogs.push(`---\nExecuting step: ${stepName}\n---`);
           try {
             const finalCommand = sshCommand ? `${sshCommand} '${command}'` : command;
+            console.log(`Running command: ${finalCommand}`);
             const stdout = await executeCommand(finalCommand, cwd);
             console.log(`Step "${stepName}" output: ${stdout}`);
             stepLogs.push(`Step "${stepName}" output:\n${stdout}`);
