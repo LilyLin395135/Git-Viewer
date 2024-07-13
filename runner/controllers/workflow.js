@@ -1,9 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import yaml from 'yaml';
-import os from 'os';
 import { exec } from 'child_process';
-import { getAllSecretsWithUserId } from '../models/secret.js';
 import { createWorkflow, getAllWorkflows, createProject, getWorkflow } from '../models/workflow.js';
 import { STATUS } from '../constants/statusCode.js';
 import { enqueueTask } from '../queue/queue.js';
@@ -42,100 +38,33 @@ export const triggerWorkflows = async (req, res) => {
       // 檢查 ymlContent 是否需要 secrets
       const needsSecrets = /secrets\./.test(ymlContent); // .test()正規表達式物件，接受一個字串參數並返回bool
 
-      let secrets = [];
-      if (needsSecrets) {
-        // 取得用戶的 secrets
-        secrets = await getAllSecretsWithUserId(userId);
+      const projectId = await createProject(projectFolder, repoUrl);
+      const workflowData = {
+        user_id: userId,
+        workflow_name: workflow[0].name,
+        workflow_file_name: workflowFileName,
+        project_id: projectId,
+        status: STATUS.QUEUE,
+        start_queue_time: getTaipeiTime(),
+        start_execute_time: null,
+        finish_execute_time: null,
+        commit_hash: commitHash,
+        commit_message: commitMessage,
+        branch: workflow[0].on.push.branches[0],
+        action: event,
+        log: '',
+        yml_content: ymlContent
+      };
+      const workflowId = await createWorkflow(workflowData);
 
-        // 獲取臨時目錄
-        const tmpDir = os.tmpdir();
+      await enqueueTask({
+        userId,
+        needsSecrets,
+        containerName: `temp_container_user${userId}_${projectFolder}`,
+        workflowData: { ...workflowData, id: workflowId }
+      });
 
-        // 保存 secrets 為檔案
-        const secretsFilePath = path.join(tmpDir, `secrets-${userId}.json`);
-        fs.writeFileSync(secretsFilePath, JSON.stringify(secrets));
-
-        // 保存 ymlContent 為檔案
-        const ymlFilePath = path.join(tmpDir, `workflow-${userId}.yml`);
-        fs.writeFileSync(ymlFilePath, ymlContent);
-
-        const containerName = `temp_container_user${userId}_${projectFolder}`;
-
-        // run DockerFile ，並傳入 secretsFilePath 和 ymlFilePath
-        const dockerCommand = `
-      docker run --name ${containerName} -d \
-      -v ${secretsFilePath}:/app/secret.json \
-      -v ${ymlFilePath}:/app/workflow.yml \
-      git-viewer-runner:latest
-      `;
-
-        const projectId = await createProject(projectFolder, repoUrl);
-        const workflowData = {
-          user_id: userId,
-          workflow_name: workflow[0].name,
-          workflow_file_name: workflowFileName,
-          project_id: projectId,
-          status: STATUS.QUEUE,
-          start_queue_time: getTaipeiTime(),
-          start_execute_time: null,
-          finish_execute_time: null,
-          commit_hash: commitHash,
-          commit_message: commitMessage,
-          branch: workflow[0].on.push.branches[0],
-          action: event,
-          log: '',
-          yml_content: ymlContent
-        };
-        const workflowId = await createWorkflow(workflowData);
-
-        await enqueueTask({
-          command: dockerCommand,
-          containerName,
-          workflowData: { ...workflowData, id: workflowId }
-        });
-
-        res.status(200).json({ message: 'Workflow enqueued successfully.', workflowId });
-      } else {
-        // 保存 ymlContent 為檔案
-        const tmpDir = os.tmpdir();
-        const ymlFilePath = path.join(tmpDir, `workflow-${userId}.yml`);
-        fs.writeFileSync(ymlFilePath, ymlContent);
-
-        const containerName = `temp_container_user${userId}_${projectFolder}`;
-
-        // run DockerFile ，並傳入 ymlFilePath
-        const dockerCommand = `
-        docker run --name ${containerName} -d \
-        -v ${ymlFilePath}:/app/workflow.yml \
-        git-viewer-runner:latest
-        `;
-
-        const projectId = await createProject(projectFolder, repoUrl);
-        const workflowData = {
-          user_id: userId,
-          workflow_name: workflow[0].name,
-          workflow_file_name: workflowFileName,
-          project_id: projectId,
-          status: STATUS.QUEUE,
-          start_queue_time: getTaipeiTime(),
-          start_execute_time: null,
-          finish_execute_time: null,
-          commit_hash: commitHash,
-          commit_message: commitMessage,
-          branch: workflow[0].on.push.branches[0],
-          action: event,
-          log: '',
-          yml_content: ymlContent
-        };
-        const workflowId = await createWorkflow(workflowData);
-
-        await enqueueTask({
-          command: dockerCommand,
-          containerName,
-          workflowData: { ...workflowData, id: workflowId }
-        });
-
-        res.status(200).json({ message: 'Workflow enqueued successfully.', workflowId });
-      }
+      res.status(200).json({ message: 'Workflow enqueued successfully.', workflowId });
     } else {
       res.status(400).json({ error: `Event '${event}' not found in workflow` });
     }

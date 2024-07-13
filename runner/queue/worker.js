@@ -1,8 +1,10 @@
 import mysql from 'mysql2';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { dequeueTask } from './queue.js';
 import { executeCommand } from '../controllers/workflow.js';
-// import { updateWorkflow } from '../models/workflow.js';
 import { STATUS } from '../constants/statusCode.js';
 import { getTaipeiTime } from '../utils/getTime.js';
 import { handleContainerCompletion } from '../utils/containerHandler.js';
@@ -17,7 +19,6 @@ const pool = mysql.createPool({
 }).promise();
 
 async function updateWorkflow(id, updateData) {
-  // Prepare SQL statement parts
   const keys = Object.keys(updateData);
   const values = Object.values(updateData);
 
@@ -36,11 +37,35 @@ async function updateWorkflow(id, updateData) {
   }
 }
 
+async function getAllSecretsWithUserId(userId) {
+  const query = `
+  SELECT * FROM secrets WHERE user_id = ? 
+  `;
+
+  const [secrets] = await pool.query(
+    query,
+    [userId]
+  );
+  return secrets;
+}
+
+const saveFiles = async (userId, workflowId, ymlContent) => {
+  const tmpDir = os.tmpdir();
+  const ymlFilePath = path.join(tmpDir, `workflow-${userId}-${workflowId}.yml`);
+  fs.writeFileSync(ymlFilePath, ymlContent);
+
+  const secretsFilePath = path.join(tmpDir, `secrets-${userId}-${workflowId}.json`);
+  const secrets = await getAllSecretsWithUserId(userId);
+  fs.writeFileSync(secretsFilePath, JSON.stringify(secrets));
+
+  return { ymlFilePath, secretsFilePath };
+};
+
 const processTasks = async () => {
   while (true) {
     const task = await dequeueTask();
     console.log('Processing task:', task);
-    const { command, containerName, workflowData } = task;
+    const { userId, needsSecrets, containerName, workflowData } = task;
     let startExecuteTime = null;
     let successExecuteTime = null;
     let failExecuteTime = null;
@@ -54,7 +79,22 @@ const processTasks = async () => {
         start_execute_time: startExecuteTime
       });
 
-      const result = await executeCommand(command, containerName);
+      const { ymlFilePath, secretsFilePath } = await saveFiles(userId, workflowData.id, workflowData.yml_content);
+
+      const dockerCommand = needsSecrets
+        ? `
+        docker run --name ${containerName} -d \
+        -v ${secretsFilePath}:/app/secret.json \
+        -v ${ymlFilePath}:/app/workflow.yml \
+        git-viewer-runner:latest
+        `
+        : `
+        docker run --name ${containerName} -d \
+        -v ${ymlFilePath}:/app/workflow.yml \
+        git-viewer-runner:latest
+        `;
+
+      const result = await executeCommand(dockerCommand, containerName);
       console.log('Task completed:', result);
 
       successExecuteTime = getTaipeiTime();
