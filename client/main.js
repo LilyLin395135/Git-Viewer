@@ -15,7 +15,7 @@ import pkg from 'electron-updater';
 const { autoUpdater } = pkg;
 
 dotenv.config();
-const URL='http://52.5.238.48';
+const URL='https://gitviewer.lilylinspace.com';
 
 // chrome debug tool
 if (process.env.NODE_ENV !== 'production') {
