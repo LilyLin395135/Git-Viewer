@@ -48,9 +48,12 @@ function createWindow() {
     mainWindow.webContents.send('use-command', command);
   });
 
-  // IPC 事件
   ipcMain.on('open-commands-hub', () => {
     createCommandsHubWindow();
+  });
+
+  ipcMain.on('open-command-record', () => {
+    createCommandRecordWindow();
   });
 }
 
@@ -66,6 +69,20 @@ function createCommandsHubWindow() {
   });
 
   commandsHubWindow.loadFile(path.join(appDirectory, 'dist/commandHub.html'));
+}
+
+function createCommandRecordWindow() {
+  const commandRecordWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(appDirectory, 'dist/preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false
+    }
+  });
+
+  commandRecordWindow.loadFile(path.join(appDirectory, 'dist/commandRecord.html'));
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求

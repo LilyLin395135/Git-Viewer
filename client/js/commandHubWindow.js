@@ -1,55 +1,3 @@
-const URL = 'http://localhost:3000/api/commandHub';//'https://gitviewer.lilylinspace.com/api/commandHub';
-// const userId = localStorage.getItem('userId'); // 從 localStorage 獲取用戶ID
-const userId = 1;
-
-// API 函數
-async function fetchCommands(userId) {
-    const response = await fetch(`${URL}/user/${userId}/commands`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch commands');
-    }
-    return response.json();
-}
-
-async function createCommand(userId, command) {
-    const response = await fetch(`${URL}/user/${userId}/commands`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(command)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to create command');
-    }
-    return response.json();
-}
-
-async function updateCommand(userId, commandId, updatedCommand) {
-    const response = await fetch(`${URL}/user/${userId}/commands/${commandId}`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedCommand)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to update command');
-    }
-    return response.json();
-}
-
-async function deleteCommand(userId, commandId) {
-    const response = await fetch(`${URL}/user/${userId}/commands/${commandId}`, {
-        method: 'DELETE'
-    });
-    if (!response.ok) {
-        throw new Error('Failed to delete command');
-    }
-    return response.json();
-}
-
-// 事件處理
 document.getElementById('new-command').addEventListener('click', () => {
     document.getElementById('new-command-form').classList.remove('hidden');
     document.getElementById('command-list-container').style.display = 'none';
@@ -57,11 +5,6 @@ document.getElementById('new-command').addEventListener('click', () => {
     document.getElementById('command-commands').value = '';
     document.getElementById('submit-command-button').dataset.commandId = '';
 });
-
-// document.getElementById('back-to-list').addEventListener('click', () => {
-//     document.getElementById('command-details-container').style.display = 'none';
-//     document.getElementById('command-list-container').style.display = 'block';
-// });
 
 document.getElementById('submit-command-button').addEventListener('click', async (event) => {
     event.preventDefault();

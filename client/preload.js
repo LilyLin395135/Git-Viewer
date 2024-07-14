@@ -20,7 +20,8 @@ contextBridge.exposeInMainWorld('electron', {
   register: (email, password) => ipcRenderer.invoke('register', { email, password }),
   login: (email, password) => ipcRenderer.invoke('login', { email, password }),
   fetchCommitMessage: (hash, folderPath) => ipcRenderer.invoke('fetch-commit-message', { hash, folderPath }),
-  openCommandsHub: () => ipcRenderer.send('open-commands-hub'),
+  openCommandHub: () => ipcRenderer.send('open-commands-hub'),
+  openCommandRecord: () => ipcRenderer.send('open-command-record'),
   useCommand: (command) => ipcRenderer.send('use-command', command),
   on: (channel, func) => ipcRenderer.on(channel, func) // expose ipcRenderer 的 on 方法
 });

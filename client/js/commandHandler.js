@@ -1,6 +1,7 @@
 const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
+const recordButton = document.getElementById('command-records');
 const URL = 'https://gitviewer.lilylinspace.com';
 
 let isPushCheckOnly = true;
@@ -119,14 +120,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     runAllButton.addEventListener('click', async () => {
+        const executionResults = [];
+        const startTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
         try {
             updatesEnabled = false;
             const commands = Array.from(commandList.children).map(li => {
-                // 返回 <li> 元素的第一部分内容，而不是整個内容
                 return li.childNodes[0].textContent.trim();
             });
 
-            //檢查每個命令是否符合觸發點
             const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
 
             const userId = localStorage.getItem('userId');
@@ -166,6 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Conflicts detected:\n' + result.conflicts);
                 }
 
+                executionResults.push({
+                    command,
+                    result: result.message || result.conflicts || 'Success'
+                });
+
                 if (command.startsWith('git')) {
                     const [_, mainCommand] = command.split(' ');
                     const eventTriggered = mainCommand.toLowerCase();
@@ -193,6 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+            await createCommandRecord({
+                userId,
+                executedAt: startTime,
+                commands,
+                results: executionResults
+            });
+            
             alert('All commands executed successfully!');
         } catch (error) {
             console.error('Error executing commands:', error);

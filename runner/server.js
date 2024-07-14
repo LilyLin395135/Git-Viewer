@@ -4,6 +4,7 @@ import workflowRouter from './routes/workflow.js';
 import secretRouter from './routes/secret.js';
 import userRouter from './routes/user.js';
 import commandHubRouter from './routes/commandHub.js';
+import commandRecordsRouter from './routes/commandRecords.js';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use('/api/workflow', workflowRouter);
 app.use('/api/secret', secretRouter);
 app.use('/api/user', userRouter);
 app.use('/api/commandHub', commandHubRouter);
+app.use('/api/commandRecords', commandRecordsRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
