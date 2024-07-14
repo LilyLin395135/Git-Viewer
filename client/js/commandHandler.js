@@ -1,7 +1,7 @@
 const commandInput = document.getElementById('command-input');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
-const URL = 'http://52.5.238.48';
+const URL = 'https://gitviewer.lilylinspace.com';
 
 let isPushCheckOnly = true;
 let commandExists = commandList.children.length > 0;
@@ -14,23 +14,6 @@ const updateRunAllButtonStatus = () => {
     }
 };
 
-// const loadCommands = () => {
-//     const commands = JSON.parse(localStorage.getItem('commands') || '[]');
-//     commands.forEach(cmd => {
-//         const listItem = document.createElement('li');
-//         listItem.textContent = cmd;
-//         commandList.appendChild(listItem);
-//     });
-//     commandInput.value = localStorage.getItem('currentCommand') || '';
-//     updateRunAllButtonStatus();
-// };
-
-// const saveCommands = () => {
-//     const commands = Array.from(commandList.querySelectorAll('li')).map(li => li.textContent);
-//     localStorage.setItem('commands', JSON.stringify(commands));
-//     localStorage.setItem('currentCommand', commandInput.value);
-// };
-
 const loadCommands = () => {
     const commands = JSON.parse(localStorage.getItem('commands') || '[]');
     commands.forEach(cmd => {
@@ -42,7 +25,6 @@ const loadCommands = () => {
 
 const saveCommands = () => {
     const commands = Array.from(commandList.querySelectorAll('li')).map(li => {
-        // 返回 <li> 元素的第一部分内容，而不是整個内容
         return li.childNodes[0].textContent.trim();
     });
     localStorage.setItem('commands', JSON.stringify(commands));
@@ -79,9 +61,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     commandInput.addEventListener('keydown', async (event) => {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            const command = commandInput.value.trim();
+            const commands = commandInput.value.trim().split('\n').filter(cmd => cmd.startsWith('git '));
+
+            if (commands.length === 0) {
+                alert('Please enter a valid git command.');
+                commandInput.focus();
+                return;
+            }
 
             if (!folderSelected) {
                 alert('Please select a folder first.');
@@ -89,44 +77,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (command.startsWith('git ')) {
+            const command = commands[0]; // 取出第一個命令
+            // if (command.startsWith('git ')) {
 
-                if (command.startsWith('git push')) {
-                    const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
-                    if (!confirmPush) return;
-                }
-                // const listItem = document.createElement('li');
-                // listItem.textContent = command;
-                // commandList.appendChild(listItem);
-                addCommandToList(command);
-                commandInput.value = '';
-                saveCommands();
-                commandExists = true;
-                updateRunAllButtonStatus();
-
-                try {
-                    const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
-                    if (result.conflict) {
-                        alert('Conflicts detected:\n' + result.conflicts);
-                    } else {
-                        if (result.message) {
-                            alert(result.message);
-                        }
-                        if (result.gitInfo) {
-                            console.log('Update git info', result.gitInfo);
-                            drawGitGraph(result.gitInfo, 'preview-graph', tempFolderPath);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error executing git command:', error);
-                    alert('Error executing git command: ' + error.message);
-                }
-            } else {
-                alert('Please Enter a valid git command.');
-                commandInput.focus();
+            if (command.startsWith('git push')) {
+                const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
+                if (!confirmPush) return;
             }
-        };
-    })
+
+            addCommandToList(command);
+            commandInput.value = commands.slice(1).join('\n'); // 移除已執行的命令
+
+            saveCommands();
+            commandExists = true;
+            updateRunAllButtonStatus();
+
+            try {
+                const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
+                if (result.conflict) {
+                    alert('Conflicts detected:\n' + result.conflicts);
+                } else {
+                    if (result.message) {
+                        alert(result.message);
+                    }
+                    if (result.gitInfo) {
+                        console.log('Update git info', result.gitInfo);
+                        drawGitGraph(result.gitInfo, 'preview-graph', tempFolderPath);
+                    }
+                }
+            } catch (error) {
+                console.error('Error executing git command:', error);
+                alert('Error executing git command: ' + error.message);
+            }
+        } else if (event.key === 'Enter' && event.shiftKey) {
+            // 允許 Shift + Enter 插入新行
+        }
+    });
+    // 接收来自 main.js 的 use-command 消息
+    window.electron.on('use-command', (event, command) => {
+        commandInput.value = command;
+    });
 
     runAllButton.addEventListener('click', async () => {
         try {

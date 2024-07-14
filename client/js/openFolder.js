@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById('open-folder').addEventListener('click', async () => {
+  showLoading();
   await handleFolderSelection();
+  hideLoading();
 });
 
 async function handleFolderSelection() {
@@ -33,6 +35,16 @@ async function handleFolderSelection() {
     alert('Error opening folder: ' + error.message);
   }
 }
+
+document.getElementById('reset-graph').addEventListener('click', async () => {
+  if (!currentFolderPath) {
+    alert('Please select a folder first.');
+    return;
+  }
+  showLoading();
+  await processFolderInfo(currentFolderPath, true);
+  hideLoading();
+});
 
 async function processFolderInfo(folderPath, gitExists) {
   localStorage.removeItem('graphContent_formal-graph');
@@ -102,7 +114,9 @@ async function checkForUpdates() {
         if (userConfirmed) {
           lastGitInfo = newGitInfo;
           localStorage.setItem('lastGitInfo', JSON.stringify(newGitInfo)); // 更新 localStorage 中的 lastGitInfo
+          showLoading()
           await processFolderInfo(currentFolderPath, true);
+          hideLoading()
         }
         else {
           lastGitInfo = newGitInfo;
@@ -118,4 +132,12 @@ async function checkForUpdates() {
 
 function stopCheckForUpdates() {
   clearInterval(updateInterval);
+}
+
+function showLoading() {
+  document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
 }

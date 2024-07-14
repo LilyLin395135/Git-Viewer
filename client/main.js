@@ -15,7 +15,7 @@ import pkg from 'electron-updater';
 const { autoUpdater } = pkg;
 
 dotenv.config();
-const URL='https://gitviewer.lilylinspace.com';
+const URL = 'https://gitviewer.lilylinspace.com';
 
 // chrome debug tool
 if (process.env.NODE_ENV !== 'production') {
@@ -43,6 +43,29 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     autoUpdater.checkForUpdatesAndNotify();
   });
+
+  ipcMain.on('use-command', (event, command) => {
+    mainWindow.webContents.send('use-command', command);
+  });
+
+  // IPC 事件
+  ipcMain.on('open-commands-hub', () => {
+    createCommandsHubWindow();
+  });
+}
+
+function createCommandsHubWindow() {
+  const commandsHubWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(appDirectory, 'dist/preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false
+    }
+  });
+
+  commandsHubWindow.loadFile(path.join(appDirectory, 'dist/commandHub.html'));
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求

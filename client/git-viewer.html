@@ -13,6 +13,8 @@
   <script defer src="./js/gitInitButton.js"></script>
   <script defer src="./js/drawGitGraph.js"></script>
   <script defer src="./js/commandHandler.js"></script>
+  <script defer src="./js/loading.js"></script>
+  <script defer src="./js/commandHub.js"></script>
 </head>
 
 <body>
@@ -22,6 +24,7 @@
       <div style="display: flex; justify-content: space-between;">
         <button id="open-folder" class="button">Open Folder</button>
         <button id="git-init" class="button">git init</button>
+        <button id="reset-graph" class="button">Reset Graph</button>
       </div>
       <div id="ai-dialog" class="box">
         <label for="ai-input">AI</label>
@@ -35,6 +38,7 @@
         <ul id="command-list"></ul>
         <textarea id="command-input" placeholder="try command"></textarea>
       </div>
+      <button id="my-commands" class="button">My Commands</button>
     </div>
     <div class="main">
       <div class="graph-container">

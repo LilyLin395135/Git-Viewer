@@ -1,0 +1,118 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+}
+
+.form-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.form-control {
+    margin-bottom: 15px;
+}
+
+.form-control label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-control input,
+.form-control textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #d1d5da;
+    border-radius: 6px;
+}
+
+.button {
+    background-color: #3b93f8;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+
+.button:hover {
+    background-color: #1d74d8;
+}
+
+.button-close {
+    background-color: #d73a49;
+}
+
+.button-close:hover {
+    background-color: #b31d28;
+}
+
+.hidden {
+    display: none;
+}
+
+#command-list {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+}
+
+#command-list .table-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 2px solid #ccc;
+}
+
+#command-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+#command-list li div {
+    flex: 1;
+}
+
+#command-list li div:nth-child(3) {
+    display: flex;
+    gap: 5px;
+}
+
+.command-button {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.command-button:hover {
+    background-color: #ddd;
+}
+
+.menu-buttons {
+    display: flex;
+    gap: 5px;
+}

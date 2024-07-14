@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Commands Hub</title>
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48 https://gitviewer.lilylinspace.com">
+  <link rel="stylesheet" type="text/css" href="stylesheet/commandHub.css">
+  <script defer src="./js/commandHubWindow.js"></script>
+</head>
+
+<body>
+  <div class="content">
+    <div id="command-list-container">
+      <div class="command-actions">
+        <button id="new-command" class="button">New Command</button>
+      </div>
+      <ul id="command-list"></ul>
+    </div>
+    <!-- <div id="command-details-container" style="display:none;">
+      <h3>Command Details</h3>
+      <div id="command-details"></div>
+      <button id="back-to-list" class="button">Back to List</button>
+    </div> -->
+    <div id="new-command-form" class="new-command-form hidden">
+      <h2>New Command</h2>
+      <form id="command-form">
+        <div class="form-control">
+          <label for="command-scenario">Scenario</label>
+          <input type="text" id="command-scenario" name="scenario" required>
+        </div>
+        <div class="form-control">
+          <label for="command-commands">Commands</label>
+          <textarea id="command-commands" name="commands" rows="5" required></textarea>
+        </div>
+        <button id="submit-command-button" class="button">Add Command</button>
+        <button id="close-command-button" class="button button-close" type="button">Close</button>
+      </form>
+    </div>
+  </div>
+</body>
+
+</html>
