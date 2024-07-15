@@ -27,6 +27,9 @@ if (process.env.NODE_ENV !== 'production') {
 const appDirectory = process.cwd(); // 當前工作資料夾
 let folderSelected = false; //在全域範圍內，才能在 openFolder.js 和 commandHandler.js 中都能被正確地存取和更新。
 
+let commandsHubWindow = null;
+let commandRecordWindow = null;
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
@@ -49,16 +52,24 @@ function createWindow() {
   });
 
   ipcMain.on('open-commands-hub', () => {
-    createCommandsHubWindow();
+    if (commandsHubWindow) {
+      commandsHubWindow.focus();
+    } else {
+      createCommandsHubWindow();
+    }
   });
 
   ipcMain.on('open-command-record', () => {
-    createCommandRecordWindow();
+    if (commandRecordWindow) {
+      commandRecordWindow.focus();
+    } else {
+      createCommandRecordWindow();
+    }
   });
 }
 
 function createCommandsHubWindow() {
-  const commandsHubWindow = new BrowserWindow({
+  commandsHubWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -69,10 +80,14 @@ function createCommandsHubWindow() {
   });
 
   commandsHubWindow.loadFile(path.join(appDirectory, 'dist/commandHub.html'));
+
+  commandsHubWindow.on('closed', () => {
+    commandsHubWindow = null;
+  });
 }
 
 function createCommandRecordWindow() {
-  const commandRecordWindow = new BrowserWindow({
+  commandRecordWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -83,6 +98,10 @@ function createCommandRecordWindow() {
   });
 
   commandRecordWindow.loadFile(path.join(appDirectory, 'dist/commandRecord.html'));
+
+  commandRecordWindow.on('closed', () => {
+    commandRecordWindow = null;
+  });
 }
 
 ipcMain.handle('open-folder', async () => { // 處理名為 open-folder 的 IPC （process 間通信）請求

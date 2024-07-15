@@ -4,7 +4,7 @@
 <head>
   <title>Git Viewer</title>
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48 https://gitviewer.lilylinspace.com">
+    content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://52.5.238.48 https://gitviewer.lilylinspace.com; img-src 'self' data:">
   <link rel="stylesheet" type="text/css" href="stylesheet/style.css">
   <link rel="stylesheet" type="text/css" href="stylesheet/header.css">
   <script defer src="./js/loadHeader.js"></script>
@@ -23,15 +23,22 @@
   <div id="header"></div>
   <div class="content">
     <div class="sidebar">
-      <div style="display: flex; justify-content: space-between;">
-        <button id="open-folder" class="button">Open Folder</button>
-        <button id="git-init" class="button">git init</button>
-        <button id="reset-graph" class="button">Reset Graph</button>
+      <!-- <div style="display: flex; justify-content: space-between;"> -->
+        <div class="button-row">
+        <button id="open-folder" class="icon-button">
+          <img src="assets/open-folder-1.png" alt="Open Folder">
+          <span>Open Folder</span>
+        </button>
+        <button id="git-init" class="icon-button">
+          <img src="assets/git-init-1.png" alt="Git Init">
+          <span>git init</span>
+        </button>
+        <button id="reset-graph" class="icon-button">
+          <img src="assets/reset-graph-1.png" alt="Reset Graph">
+          <span>Reset Graph</span>
+        </button>
       </div>
-      <div id="ai-dialog" class="box">
-        <label for="ai-input">AI</label>
-        <textarea id="ai-input" placeholder="questions of git"></textarea>
-      </div>
+      
       <div id="try-command" class="box">
         <div class="box-header" style="display: flex; justify-content: space-between;">
           <label for="command-input" class="center-label">Try Command</label>
@@ -40,8 +47,16 @@
         <ul id="command-list"></ul>
         <textarea id="command-input" placeholder="try command"></textarea>
       </div>
-      <button id="my-commands" class="button">My Commands</button>
-      <button id="command-record" class="button">Command Record</button>
+      <div class="button-row">
+        <button id="my-commands" class="icon-button">
+          <img src="assets/my-commands-1.png" alt="My Commands">
+          <span>My Commands</span>
+        </button>
+        <button id="command-record" class="icon-button">
+          <img src="assets/command-record-1.png" alt="Command Record">
+          <span>Command Record</span>
+        </button>
+      </div>
     </div>
     <div class="main">
       <div class="graph-container">

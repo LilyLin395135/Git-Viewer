@@ -73,92 +73,38 @@
     display: none;
 }
 
-#command-list {
-    width: 100%;
+#record-list {
+    /* width: 100%; */
     border-collapse: collapse;
     border-spacing: 0;
-    border: 1px solid #d1d5da;
-    border-radius: 6px;
+    border-radius: 10px;
     overflow: hidden;
 }
 
-#command-list .table-header th {
+#record-list th,
+#record-list td {
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+}
+
+.table-header th {
     text-align: center;
     padding: 10px;
-    background-color: #ECF5FF;
-}
-
-#command-list tr {
-    border: none;
-}
-
-#command-list td {
-    padding: 10px;
-    border: none;
-}
-
-#command-list td.center-text {
-    text-align: center;
-}
-
-#command-list .menu-buttons {
-    /* display: flex; */
-    gap: 5px;
-}
-
-.command-button {
-    background-color: #ffffff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-right: 5px;
-    color:black;
-}
-
-.command-button:hover {
     background-color: #84C1FF;
-    color:white;
-}
-
-.edit-button {
-    background-color: #3b93f8;
     color: white;
+}
+
+tr {
     border: none;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 6px;
 }
 
-.edit-button:hover {
-    background-color: #1d74d8;
-}
-
-.delete-button {
-    background-color: #d73a49;
-    color: white;
+td {
+    padding: 10px;
     border: none;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 6px;
 }
 
-.delete-button:hover {
-    background-color: #b31d28;
-}
-
-.use-button {
-    background-color: #3b93f8;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 6px;
-}
-
-.use-button:hover {
-    background-color: #1d74d8;
+.center-text {
+    text-align: center;
 }
 
 .no-commands {
@@ -171,7 +117,29 @@
     align-items: center;
 }
 
-#command-list th,
-#command-list td {
-    border: 2px solid white; /* 表格內的白色線條 */
+.menu-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.command-buttons,
+.result-buttons {
+    display: flex;
+    flex-direction: column;
+}
+
+.command,
+.result {
+    margin-bottom: 5px;
+}
+
+.command:hover,
+.result:hover,
+.command.hover,
+.result.hover {
+    background-color: #97CBFF	;
+    color:white;
+    border-radius: 6px;
+    padding: 6px;
 }

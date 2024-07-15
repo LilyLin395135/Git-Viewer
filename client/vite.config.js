@@ -50,6 +50,7 @@ export default defineConfig({
         { src: 'stylesheet/register.css', dest: 'stylesheet' },
         { src: 'stylesheet/newWorkflow.css', dest: 'stylesheet' },
         { src: 'stylesheet/commandHub.css', dest: 'stylesheet' },
+        { src: 'stylesheet/commandRecord.css', dest: 'stylesheet' },
         { src: 'settings.html', dest: '' },
         { src: 'workflow.html', dest: '' },
         { src: 'commandHub.html', dest: '' },
@@ -57,7 +58,17 @@ export default defineConfig({
         { src: 'login.html', dest: '' },
         { src: 'register.html', dest: '' },
         { src: 'assets/logo_word.png', dest: 'assets' },
-        { src: 'assets/logo_GV_1.png', dest: 'assets' }
+        { src: 'assets/logo_GV_1.png', dest: 'assets' },
+        { src: 'assets/Guide1-gitviewer-folder.jpg', dest: 'assets' },
+        { src: 'assets/Guide1-yml-file.jpg', dest: 'assets' },
+        { src: 'assets/Guide3-set-secrets.jpg', dest: 'assets' },
+        { src: 'assets/Guide4-workflow.jpg', dest: 'assets' },
+        { src: 'assets/Guide5-workflow-log.jpg', dest: 'assets' },
+        { src: 'assets/open-folder-1.png', dest: 'assets' },
+        { src: 'assets/git-init-1.png', dest: 'assets' },
+        { src: 'assets/reset-graph-1.png', dest: 'assets' },
+        { src: 'assets/my-commands-1.png', dest: 'assets' },
+        { src: 'assets/command-record-1.png', dest: 'assets' }
       ]
     })
   ],

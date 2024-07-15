@@ -94,7 +94,7 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
-    height: 200px;
+    height: 500px;
     /* 設置固定高度 */
     overflow-y: auto;
     /* 內容超出時顯示滾動條 */
@@ -143,6 +143,7 @@ body {
     padding: 5px;
     margin-top: auto;
     border-radius: 6px;
+    height: 100px;
 }
 
 .box label {
@@ -269,88 +270,163 @@ body {
 }
 
 .cssload-fond {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(255, 255, 255, 0.8);
-	z-index: 9999;
-	display: flex;
-	justify-content: center;
-	align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .cssload-container-general {
-	animation: cssload-animball_two 1.15s infinite;
-	width: 43px;
-	height: 43px;
+    animation: cssload-animball_two 1.15s infinite;
+    width: 43px;
+    height: 43px;
 }
 
 .cssload-internal {
-	width: 43px;
-	height: 43px;
-	position: absolute;
+    width: 43px;
+    height: 43px;
+    position: absolute;
 }
 
 .cssload-ballcolor {
-	width: 19px;
-	height: 19px;
-	border-radius: 50%;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
 }
 
-.cssload-ball_1, .cssload-ball_2, .cssload-ball_3, .cssload-ball_4 {
-	position: absolute;
-	animation: cssload-animball_one 1.15s infinite ease;
+.cssload-ball_1,
+.cssload-ball_2,
+.cssload-ball_3,
+.cssload-ball_4 {
+    position: absolute;
+    animation: cssload-animball_one 1.15s infinite ease;
 }
 
 .cssload-ball_1 {
-	background-color: #F875AA;
-	top: 0;
-	left: 0;
+    background-color: #F875AA;
+    top: 0;
+    left: 0;
 }
 
 .cssload-ball_2 {
-	background-color: #3ABEF9;
-	top: 0;
-	left: 23px;
+    background-color: #3ABEF9;
+    top: 0;
+    left: 23px;
 }
 
 .cssload-ball_3 {
-	background-color: #FFC7ED;
-	top: 23px;
-	left: 0;
+    background-color: #FFC7ED;
+    top: 23px;
+    left: 0;
 }
 
 .cssload-ball_4 {
-	background-color: #AEDEFC;
-	top: 23px;
-	left: 23px;
+    background-color: #AEDEFC;
+    top: 23px;
+    left: 23px;
 }
 
 @keyframes cssload-animball_one {
-	0% {
-		position: absolute;
-	}
-	50% {
-		top: 12px;
-		left: 12px;
-		position: absolute;
-		opacity: 0.5;
-	}
-	100% {
-		position: absolute;
-	}
+    0% {
+        position: absolute;
+    }
+
+    50% {
+        top: 12px;
+        left: 12px;
+        position: absolute;
+        opacity: 0.5;
+    }
+
+    100% {
+        position: absolute;
+    }
 }
 
 @keyframes cssload-animball_two {
-	0% {
-		transform: rotate(0deg) scale(1);
-	}
-	50% {
-		transform: rotate(360deg) scale(1.3);
-	}
-	100% {
-		transform: rotate(720deg) scale(1);
-	}
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(360deg) scale(1.3);
+    }
+
+    100% {
+        transform: rotate(720deg) scale(1);
+    }
+}
+
+.icon-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    text-align: center;
+}
+
+.icon-button img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
+}
+
+.icon-button span {
+    font-size: 14px;
+    color: #333;
+}
+
+.icon-button:hover img {
+    transform: scale(1.1);
+    transition: transform 0.3s;
+}
+
+.button {
+    background-color: #3b93f8;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+
+.button:hover {
+    background-color: #1d74d8;
+}
+
+.button-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.icon-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* .icon-button img {
+    width: 24px;
+    height: 24px;
+} */
+
+.icon-button span {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #000;
 }

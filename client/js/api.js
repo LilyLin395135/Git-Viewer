@@ -1,5 +1,5 @@
-const commandHubURL = 'http://localhost:3000/api/commandHub';//'https://gitviewer.lilylinspace.com/api/commandHub';
-const commandRecordURL = 'http://localhost:3000/api/commandRecords';//'https://gitviewer.lilylinspace.com/api/commandRecords';
+const commandHubURL = 'https://gitviewer.lilylinspace.com/api/commandHub';//'http://localhost:3000/api/commandHub';
+const commandRecordURL = 'https://gitviewer.lilylinspace.com/api/commandRecords';//'http://localhost:3000/api/commandRecords';
 const userId = localStorage.getItem('userId'); // 從 localStorage 獲取用戶ID
 // const userId = 1;
 

@@ -43,33 +43,50 @@ async function loadCommands() {
         const commandList = document.getElementById('command-list');
 
         if (!Array.isArray(commands) || commands.length === 0) {
-            commandList.innerHTML = '<li>No commands found</li>';
-        } else {
             commandList.innerHTML = `
-                <li class="table-header">
-                    <div>ID</div>
-                    <div>Scenario</div>
-                    <div>Commands</div>
-                    <div>Usage Count</div>
-                    <div>Menu</div>
-                </li>
+            <tr><td colspan="5">
+                <div class="no-commands">
+                    <p class="Blankslate-Description">No commands created yet</p>
+                    <button id="new-command-no-commands" class="button">New Command</button>
+                </div>
+            </td></tr>`;
+            document.querySelector('.command-actions').style.display = 'none';
+            // Add event listener for the placeholder button
+            document.getElementById('new-command-no-commands').addEventListener('click', () => {
+                document.getElementById('new-command-form').classList.remove('hidden');
+                document.getElementById('command-list-container').style.display = 'none';
+                document.getElementById('command-scenario').value = '';
+                document.getElementById('command-commands').value = '';
+                document.getElementById('submit-command-button').dataset.commandId = '';
+            });
+        } else {
+            document.querySelector('.command-actions').style.display = 'flex';
+            commandList.innerHTML = `
+                <tr class="table-header">
+                    <th>ID</th>
+                    <th>Scenario</th>
+                    <th>Commands</th>
+                    <th>Usage Count</th>
+                    <th>Menu</th>
+                </tr>
                 ${commands.map(command => `
-                    <li data-command-id="${command.id}">
-                        <div>${command.id}</div>
-                        <div>${command.scenario}</div>
-                        <div>
+                    <tr data-command-id="${command.id}">
+                        <td>${command.id}</td>
+                        <td>${command.scenario}</td>
+                        <td class="command-buttons">
                             ${command.commands.map(cmd => `<button class="command-button">${cmd}</button>`).join('')}
-                        </div>
-                        <div>${command.usage_count}</div>
-                        <div class="menu-buttons">
+                        </td>
+                        <td class="center-text">${command.usage_count}</td>
+                        <td class="menu-buttons">
+                            <button class="use-button">Use</button>
                             <button class="edit-button">Edit</button>
                             <button class="delete-button">Delete</button>
-                            <button class="use-button">Use</button>
-                        </div>
-                    </li>
-                `).join('')}
+                        </td>
+                    </tr>
+            `).join('')}
             `;
         }
+
     } catch (error) {
         console.error('Failed to load commands:', error);
     }
@@ -79,13 +96,13 @@ document.addEventListener('DOMContentLoaded', loadCommands);
 
 document.getElementById('command-list').addEventListener('click', async (event) => {
     const target = event.target;
-    const listItem = target.closest('li');
+    const listItem = target.closest('tr');
     const commandId = listItem?.dataset.commandId;
 
     if (target.classList.contains('edit-button')) {
         // 處理編輯指令邏輯
-        const scenario = listItem.querySelector('div:nth-child(2)').innerText;
-        const commands = Array.from(listItem.querySelectorAll('div:nth-child(3) .command-button')).map(btn => btn.innerText);
+        const scenario = listItem.querySelector('td:nth-child(2)').innerText;
+        const commands = Array.from(listItem.querySelectorAll('td:nth-child(3) .command-button')).map(btn => btn.innerText);
 
         document.getElementById('command-scenario').value = scenario;
         document.getElementById('command-commands').value = commands.join('\n');
