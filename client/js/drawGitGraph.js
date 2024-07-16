@@ -23,9 +23,76 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
   const branchMap = new Map();
   const lastNode = new Map();
 
-  // 初始化SVG
-  const svgWidth = xSpacing * 4; // 假设最多有三个分支
-  const svgHeight = (logOutput.length + 3) * nodeSpacing;
+  // 处理 logOutput 和 commitMessages
+  logOutput.forEach((logLine, index) => {
+    // 每列数来第一个是 hash, parent1, parent2
+    const parts = logLine.match(/(?:[^\s()]+|\(.*?\))/g); // 确保括号内的内容是一个完整的部分
+    const hash = parts[0];
+    const parent1 = parts[1];
+    let parent2 = null;
+    let branchInfo = '';
+
+    if (parts.length > 2) {
+      if (parts[2].startsWith('(')) {
+        branchInfo = parts[2];
+      } else {
+        parent2 = parts[2];
+      }
+    }
+
+    if (parts.length > 3) branchInfo = parts[3];
+
+    let x;
+
+    // 判断每列的 hash
+    if (index === 0 || !branchMap.has(hash)) {
+      // 当 hash 是第 0 列第 0 个或没有在任何分支集合中，就分配到主线上
+      x = 0;
+      branchMap.set(hash, 0);
+    } else {
+      // 维持在 branchMap 中的位置
+      x = branchMap.get(hash);
+    }
+
+    const labelIndex = logOutput.length - index - 1;
+
+    nodes.push({
+      id: hash,
+      x: x * xSpacing,
+      y: (logOutput.length - index - 1) * nodeSpacing + nodeSpacing,
+      isMainLine: x === 0,
+      label: `C${labelIndex}`,
+      branchInfo: branchInfo.trim()
+    });
+
+    commitMap[hash] = {
+      x: x * xSpacing,
+      y: (logOutput.length - index - 1) * nodeSpacing + nodeSpacing,
+      isMainLine: x === 0,
+      parents: [parent1, parent2]
+    };
+
+    lastNode.set(x, { x: commitMap[hash].x, y: commitMap[hash].y, id: hash }); // 更新 lastNode
+
+    if (parent1) {
+      let parent1x;
+      if (!branchMap.has(parent1)) {
+        parent1x = x;
+        branchMap.set(parent1, x);
+      } else {
+        parent1x = branchMap.get(parent1);
+      }
+    }
+
+    if (parent2) {
+      let parent2x = branchMap.has(parent2) ? branchMap.get(parent2) : (x + 1);
+      branchMap.set(parent2, parent2x);
+    }
+  });
+
+  const [minX, maxX] = d3.extent(nodes, d => d.x);
+  const svgWidth = (maxX + xSpacing) * 2; // 为了确保图形宽度足够，需要增加额外的间距
+  const svgHeight = (logOutput.length + 4) * nodeSpacing;
   const offsetX = (svgWidth - xSpacing) / 2;
 
   const svg = d3.select(`#${graphId}`).append('svg')
@@ -45,12 +112,12 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
     .attr('d', 'M0,0 L0,6 L6,3 z')
     .attr('fill', '#000');
 
-  // 先繪制 UntrackedFiles, ChangesNotStaged 和 ChangesToBeCommitted
+  // 处理 UntrackedFiles, ChangesNotStaged 和 ChangesToBeCommitted
   const additionalNodes = [];
   if (UntrackedFiles.length > 0 || ChangesNotStaged.length > 0) {
     additionalNodes.push({
       x: 0 - 2 * nodeRadius,
-      y: svgHeight - nodeRadius * 4,
+      y: (logOutput.length) * nodeSpacing + nodeSpacing,
       type: 'untracked',
       data: [...UntrackedFiles, ...ChangesNotStaged],
       title: 'Untracked and Not Staged Files'
@@ -60,7 +127,7 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
   if (ChangesToBeCommitted.length > 0) {
     additionalNodes.push({
       x: 0 + 2 * nodeRadius,
-      y: svgHeight - nodeRadius * 4,
+      y: (logOutput.length) * nodeSpacing + nodeSpacing,
       type: 'staged',
       data: ChangesToBeCommitted,
       title: 'Changes To Be Committed'
@@ -96,104 +163,31 @@ const drawGitGraph = (gitInfo, graphId, folderPath) => {
     });
   });
 
-  // 再處理 logOutput 和 commitMessages
-  logOutput.forEach((logLine, index) => {
-    // 每列數來第一個是hash, parent1, parent2
-    const parts = logLine.match(/(?:[^\s()]+|\(.*?\))/g); // 確保括號內的內容是一個完整的部分
-    const hash = parts[0];
-    const parent1 = parts[1];
-    let parent2 = null;
-    let branchInfo = '';
+  nodes.forEach((node, index) => {
+    const parent1 = commitMap[node.id].parents[0];
+    const parent2 = commitMap[node.id].parents[1];
 
-    if (parts.length > 2) {
-      if (parts[2].startsWith('(')) {
-        branchInfo = parts[2];
-      } else {
-        parent2 = parts[2];
-      }
-    }
-
-    if (parts.length > 3) branchInfo = parts[3];
-
-    let x, y;
-
-    // 判斷每列的hash
-    if (index === 0 || !branchMap.has(hash)) {
-      // 當hash是第0列第0個或沒有在任何分支集合中，就分配到主線上
-      x = 0;
-      branchMap.set(hash, 0);
-    } else {
-      // 維持在branchMap中的位置
-      x = branchMap.get(hash);
-    }
-    y = svgHeight - ((index + 1) * nodeSpacing + nodeRadius * 4);
-
-    nodes.push({
-      id: hash,
-      // message: commitMessages.find(commit => commit.hash.startsWith(hash)).message,
-      x: x * xSpacing,
-      y,
-      isMainLine: x === 0,
-      branchInfo: branchInfo.trim()
-    });
-
-    commitMap[hash] = {
-      x: x * xSpacing,
-      y,
-      isMainLine: x === 0,
-      parents: [parent1, parent2]
-    };
-
-    const labelIndex = logOutput.length - index - 1;
-
-    // 畫出當前節點
-    drawNode(svg, {
-      id: hash,
-      // message: commitMessages.find(commit => commit.hash.startsWith(hash)).message,
-      x: x * xSpacing,
-      y,
-      isMainLine: x === 0,
-      label: `C${labelIndex}`
-    }, nodeRadius, offsetX, folderPath);
-
-    // 画连接线
-    if (lastNode.has(x) && commitMap[lastNode.get(x).id].parents.includes(hash)) {
-      const last = lastNode.get(x);
+    if (parent1) {
       drawLink(svg, {
-        sourceX: commitMap[hash].x,
-        sourceY: commitMap[hash].y + nodeRadius,
-        targetX: last.x,
-        targetY: last.y - nodeRadius,
+        sourceX: node.x,
+        sourceY: node.y - nodeRadius,
+        targetX: commitMap[parent1].x,
+        targetY: commitMap[parent1].y + nodeRadius,
       }, offsetX);
     }
 
-    lastNode.forEach((last, key) => {
-      if (key !== x && commitMap[last.id].parents.includes(hash)) {
-        drawLink(svg, {
-          sourceX: commitMap[hash].x,
-          sourceY: commitMap[hash].y + nodeRadius,
-          targetX: last.x,
-          targetY: last.y - nodeRadius,
-        }, offsetX);
-      }
-    });
-
-    lastNode.set(x, { x: commitMap[hash].x, y: commitMap[hash].y, id: hash }); // 更新 lastNode
-
-    if (parent1) {
-      let parent1x;
-      if (!branchMap.has(parent1)) {
-        parent1x = x;
-        branchMap.set(parent1, x);
-      } else {
-        parent1x = branchMap.get(parent1);
-      }
-    }
-
     if (parent2) {
-      let parent2x = branchMap.has(parent2) ? branchMap.get(parent2) : (x + 1);
-      branchMap.set(parent2, parent2x);
+      drawLink(svg, {
+        sourceX: node.x,
+        sourceY: node.y - nodeRadius,
+        targetX: commitMap[parent2].x,
+        targetY: commitMap[parent2].y + nodeRadius,
+      }, offsetX);
     }
+  });
+
+  nodes.forEach((node) => {
+    drawNode(svg, node, nodeRadius, offsetX, folderPath);
   });
 
   const graphContainer = document.querySelector(`#${graphId}`);
@@ -269,10 +263,10 @@ const drawNode = (svg, node, radius, offsetX, folderPath) => {
 const drawLink = (svg, link, offsetX) => {
   svg.append('line')
     .attr('class', 'link')
-    .attr('x1', link.sourceX + offsetX)
-    .attr('y1', link.sourceY)
-    .attr('x2', link.targetX + offsetX)
-    .attr('y2', link.targetY)
+    .attr('x1', link.targetX + offsetX)
+    .attr('y1', link.targetY)
+    .attr('x2', link.sourceX + offsetX)
+    .attr('y2', link.sourceY)
     .attr('stroke', 'black')
     .attr('stroke-width', 2)
     .attr('marker-end', 'url(#arrow)');
