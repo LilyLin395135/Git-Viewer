@@ -94,7 +94,7 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
-    height: 450px;
+    height: 350px;
     /* 設置固定高度 */
     overflow-y: auto;
     /* 內容超出時顯示滾動條 */
