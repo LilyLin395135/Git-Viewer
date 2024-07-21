@@ -40,12 +40,19 @@ const sendRequest = async (bodyOverrides) => {
 };
 
 describe('Workflow Controller', () => {
+  beforeEach(() => {
+    jest.clearAllMocks(); // 清除所有 mock
+    setupMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks(); // 清除所有 mock
+  });
+
   describe('triggerWorkflows', () => {
     it('should enqueue the workflow if event is found in ymlContent', async () => {
       // arrange
-      setupMocks();
-
-      // action
+      // act
       const response = await sendRequest({ event: 'push' });
 
       // assert
@@ -58,7 +65,7 @@ describe('Workflow Controller', () => {
 
     it('should return 400 if event is not found in ymlContent', async () => {
       // arrange
-      // action
+      // act
       const response = await sendRequest({ event: 'pull_request' });
 
       // assert
@@ -70,7 +77,7 @@ describe('Workflow Controller', () => {
       // arrange
       createProject.mockRejectedValue(new Error('Test error'));
 
-      // action
+      // act
       const response = await sendRequest({ event: 'push' });
 
       // assert
