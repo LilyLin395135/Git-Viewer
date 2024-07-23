@@ -39,7 +39,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false
     },
-    icon: path.join(appDirectory, 'assets', 'logo_GV_1.png') //應用程式logo
+    icon: path.join(appDirectory, 'build', 'icon.png') //應用程式logo
   });
   mainWindow.loadFile(path.join(appDirectory, 'dist/git-viewer.html'));
 
@@ -263,7 +263,6 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
 
 ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = true }) => {
   try {
-    const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
 
     // Remove 'git' from the command if it's included
@@ -271,12 +270,29 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
       mainCommand = args.shift();
     }
 
+    const git = simpleGit(folderPath);
+    let resultMessage = '';
+
     console.log(`mainCommand:${mainCommand}`);
     console.log(`args:${args}`);
 
-    let resultMessage = '';
 
     switch (mainCommand) {
+      case 'clone':
+        const repoUrl = args[0];
+
+        if (fs.existsSync(path.join(folderPath, '.git'))) {
+          throw new Error('The folder is already a git repository. Please choose another folder.');
+        }
+
+        if (fs.existsSync(folderPath) && fs.readdirSync(folderPath).length > 0) {
+          throw new Error('The folder is not empty. Please choose another folder.');
+        }
+
+        await git.clone(repoUrl, folderPath);
+        resultMessage = `Repository successfully cloned from ${repoUrl} to ${folderPath}`;
+        break;
+
       case 'pull':
         const remoteName = args[0] || 'origin';
         const branchName = args[1] || 'main';
@@ -488,16 +504,12 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         resultMessage = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
     }
 
+    const isRepo = await git.checkIsRepo();
+    if (!isRepo) {
+      throw new Error('No git repository found in the given path or its parent directories.');
+    }
+
     const gitInfo = await getGitInfo(folderPath);
-    // await new Promise((resolve, reject) => {
-    //   createGitInfo(gitInfo, (err, id) => {
-    //     if (err) {
-    //       reject(err);
-    //     } else {
-    //       resolve(id);
-    //     }
-    //   });
-    // });
     return { message: resultMessage, gitInfo };
   } catch (error) {
     console.error('Error executing git command:', error);

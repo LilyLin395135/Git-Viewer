@@ -58,7 +58,7 @@ export default defineConfig({
         { src: 'login.html', dest: '' },
         { src: 'register.html', dest: '' },
         { src: 'assets/logo_word.png', dest: 'assets' },
-        { src: 'assets/logo_GV_1.png', dest: 'assets' },
+        { src: 'assets/icon.png', dest: 'assets' },
         { src: 'assets/Guide1-gitviewer-folder.jpg', dest: 'assets' },
         { src: 'assets/Guide1-yml-file.jpg', dest: 'assets' },
         { src: 'assets/Guide3-set-secrets.jpg', dest: 'assets' },

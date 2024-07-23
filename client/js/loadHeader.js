@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     .then((data) => {
       document.getElementById('header').innerHTML = data;
 
-      // 確保鏈接的類被添加在 header 內容加載後
       const currentPage = window.location.pathname.split('/').pop();
       const links = {
         'git-viewer.html': document.getElementById('link-git-viewer'),
@@ -15,5 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (links[currentPage]) {
         links[currentPage].classList.add('active');
       }
+      // 登出按鈕
+      document.getElementById('logout-button').addEventListener('click', () => {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        window.location.href = 'login.html'; // 假設登出後跳轉到登錄頁面
+      });
     });
 });

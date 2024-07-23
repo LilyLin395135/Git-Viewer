@@ -42,6 +42,12 @@ const getRepositoryUrl = (dir) => {
 
 export const checkWorkflows = async ({commands, folderPath})=>{
   const git = simpleGit(folderPath);
+  const isRepo = await git.checkIsRepo();
+
+  if (!isRepo) {
+    return null;
+  }
+  
   const currentBranch = (await git.status()).current;
   const rootDir = findGitRoot(folderPath);
   const yamlFiles = findYmlFiles(rootDir);

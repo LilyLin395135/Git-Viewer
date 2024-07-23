@@ -98,6 +98,8 @@ async function processFolderInfo(folderPath, gitExists) {
 }
 
 async function checkForUpdates() {
+  stopCheckForUpdates(); // 在設置新的間隔之前確保停止之前的檢查
+  
   updateInterval = setInterval(async () => {
     if (!updatesEnabled || !folderSelected || !currentFolderPath) return;
 
