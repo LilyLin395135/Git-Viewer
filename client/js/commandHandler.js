@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     result: result.message || result.conflicts || 'Success'
                 });
 
-                if (command.startsWith('git')) {
+                if (command.startsWith('git') && command !== 'git push origin +HEAD') {
                     const [_, mainCommand] = command.split(' ');
                     const eventTriggered = mainCommand.toLowerCase();
                     if (eventsTriggered.has(eventTriggered)) {

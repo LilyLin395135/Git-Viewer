@@ -338,9 +338,9 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         break;
 
       case 'reset':
-        const resetMode = args[0] || 'mixed'; // 默认使用混合模式
+        const resetMode = args[0] || '--mixed';
         const resetCommit = args[1] || 'HEAD';
-        await git.reset([`--${resetMode}`, resetCommit]);
+        await git.reset([resetMode, resetCommit]);
         const postResetStatus = await git.status();
         const unstagedChanges = postResetStatus.files
           .filter(file => file.working_dir !== ' ')
@@ -394,7 +394,8 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
           const branchName = args[0];
           const currentBranch = (await (git.status())).current;
           if (branchName === currentBranch) {
-            resultMessage = `Already on '${branchName}`;
+            resultMessage = `Already on ${branchName}`;
+            break;
           }
 
           const worktreeList = await git.raw(['worktree', 'list']);
@@ -486,18 +487,18 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         resultMessage = diffResult;
         break;
 
-      case 'reset':
-        if (args[0] === '--soft' && args[1].startsWith('HEAD~')) {
-          await git.raw(['reset', '--soft', args[1]]);
-          resultMessage = 'Reset the last commit.';
-        } else if (args[0] === 'origin' && args[1] === '+HEAD') {
-          await git.raw(['push', 'origin', '+HEAD']);
-          resultMessage = 'Forced pushed the HEAD.';
-        } else {
-          await git.reset(args);
-          resultMessage = 'Reset the repository.';
-        }
-        break;
+      // case 'reset':
+      //   if (args[0] === '--soft' && args[1].startsWith('HEAD~')) {
+      //     await git.raw(['reset', '--soft', args[1]]);
+      //     resultMessage = 'Reset the last commit.';
+      //   } else if (args[0] === 'origin' && args[1] === '+HEAD') {
+      //     await git.raw(['push', 'origin', '+HEAD']);
+      //     resultMessage = 'Forced pushed the HEAD.';
+      //   } else {
+      //     await git.reset(args);
+      //     resultMessage = 'Reset the repository.';
+      //   }
+      //   break;
 
       default:
         const rawResult = await git.raw([mainCommand, ...args]);
