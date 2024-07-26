@@ -1,10 +1,14 @@
 const URL = 'http://52.5.238.48'; // http://localhost:3000
 
+const showAlert = async (message) => {
+    await window.electron.showAlert(message);
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        alert('You need to log in first.');
+        showAlert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);
         window.location.href = `login.html?redirect=${redirectUrl}`;
         return;
@@ -164,14 +168,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     closeSecretForm();
                     deleteFormState();
                 } else {
-                    alert('Failed to add secret.');
+                    showAlert('Failed to add secret.');
                 }
             } catch (error) {
                 console.error('Error adding secret:', error);
-                alert(`Error adding secret: ${error}`);
+                showAlert(`Error adding secret: ${error}`);
             }
         } else {
-            alert('Please provide both name and value for the secret.');
+            showAlert('Please provide both name and value for the secret.');
         }
     }
 
@@ -193,14 +197,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     closeSecretForm();
                     deleteFormState();
                 } else {
-                    alert('Failed to update secret.');
+                    showAlert('Failed to update secret.');
                 }
             } catch (error) {
                 console.error('Error updating secret:', error);
-                alert(`Error updating secret: ${error}`);
+                showAlert(`Error updating secret: ${error}`);
             }
         } else {
-            alert('Please provide both name and value for the secret.');
+            showAlert('Please provide both name and value for the secret.');
         }
     }
 

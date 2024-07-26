@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, check } from 'express-validator';
 
 export const triggerWorkflowsValidator = [
   body('event').notEmpty().withMessage('event is required'),
@@ -7,7 +7,8 @@ export const triggerWorkflowsValidator = [
 ];
 
 export const getWorkflowLogsValidator = [
-  param('containerName').notEmpty().withMessage('containerName is required')
+  // param('containerName').notEmpty().withMessage('containerName is required')
+  check('containerName').exists().withMessage('containerName is required')
 ];
 
 export const createWorkflowValidator = [

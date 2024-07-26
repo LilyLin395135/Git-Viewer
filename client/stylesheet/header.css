@@ -53,3 +53,18 @@ body {
     color: #8b572a;
     border-bottom: 2px solid #8b572a;
 }
+
+.header__logout {
+    margin-left: auto;
+    padding: 6px 12px;
+    background-color: #FF5151;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    width: 70px;
+}
+
+.header__logout:hover {
+    background-color: #CE0000;
+}

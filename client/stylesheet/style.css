@@ -430,3 +430,75 @@ body {
     font-size: 14px;
     color: #000;
 }
+
+.command-input-container {
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    /* 可選，添加陰影效果 */
+    margin-top: 10px;
+    /* 可選，添加頂部間距 */
+}
+
+.command-input-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+#command-input {
+    width: calc(100% - 40px);
+    padding: 5px;
+    border-radius: 6px 0 0 6px;
+    height: 100px;
+    box-sizing: border-box;
+}
+
+#reference-input-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: #f4f4f4;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+}
+
+#reference-input-button:hover {
+    background-color: #e0e0e0;
+}
+
+.command-input-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+#command-input {
+    width: calc(100% - 40px);
+    padding: 5px;
+    border-radius: 6px 0 0 6px;
+    height: 100px;
+    box-sizing: border-box;
+    border-color: white;
+}
+
+#reference-input-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: #f4f4f4;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#reference-input-button:hover {
+    background-color: #e0e0e0;
+}

@@ -1,7 +1,15 @@
+const showAlert = async (message) => {
+  await window.electron.showAlert(message);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const redirectUrl = params.get('redirect');
   const registerLink = document.getElementById('registerLink');
+
+  // Set default values for the login form
+  document.getElementById('email').value = 'user@gmail.com';
+  document.getElementById('password').value = 'gitViewer';
 
   if (redirectUrl) {
     registerLink.href = `register.html?redirect=${encodeURIComponent(redirectUrl)}`;
@@ -18,10 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.success) {
       localStorage.setItem('userId', result.userId);
       localStorage.setItem('token', result.token);
-      alert('Login successful');
+      showAlert('Login successful');
       window.location.href = redirectUrl || 'git-viewer.html';
     } else {
-      alert('Login failed: ' + result.message);
+      showAlert('Login failed: ' + result.message);
     }
   });
 });

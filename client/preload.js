@@ -10,7 +10,8 @@ contextBridge.exposeInMainWorld('electron', {
       .catch((err) => callback(err))
   },
   deleteGitInfo: () => ipcRenderer.invoke('delete-git-info'),
-  showAlert: (message) => ipcRenderer.invoke('show-alert', message),
+  // showAlert: (message) => ipcRenderer.invoke('show-alert', message),
+  showAlert: (message) => ipcRenderer.invoke('show-custom-alert', message),
   executeGitCommand: (data) => ipcRenderer.invoke('execute-git-command', data),
   prepareTempGitFolder: (currentFolderPath) => ipcRenderer.invoke('prepare-temp-git-folder', currentFolderPath),
   checkWorkflows: (commands, folderPath) => ipcRenderer.invoke('check-workflows', { commands, folderPath }),

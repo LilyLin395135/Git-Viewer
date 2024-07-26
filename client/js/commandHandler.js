@@ -1,4 +1,5 @@
 const commandInput = document.getElementById('command-input');
+const referenceInputButton = document.getElementById('reference-input-button');
 const commandList = document.getElementById('command-list');
 const runAllButton = document.getElementById('run-all');
 const recordButton = document.getElementById('command-records');
@@ -6,6 +7,10 @@ const URL = 'https://gitviewer.lilylinspace.com';
 
 let isPushCheckOnly = true;
 let commandExists = commandList.children.length > 0;
+
+// const showAlert = async (message) => {
+//     await window.electron.showAlert(message);
+// };
 
 const updateRunAllButtonStatus = () => {
     if (commandList.children.length > 0) {
@@ -61,59 +66,74 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('currentCommand', commandInput.value);
     });
 
+    // commandInput.addEventListener('keydown', async (event) => {
+    //     if (event.key === 'Enter' && !event.shiftKey) {
+    //         event.preventDefault();
+    async function handleCommandExecution() {
+        const commands = commandInput.value.trim().split('\n').filter(cmd => cmd.startsWith('git '));
+
+        if (commands.length === 0) {
+            showAlert('Please enter a valid git command.');
+            commandInput.focus();
+            return;
+        }
+
+        if (!folderSelected) {
+            showAlert('Please select a folder first.');
+            commandInput.focus();
+            return;
+        }
+
+        const command = commands[0]; // 取出第一個命令
+
+        if (command.startsWith('git push')) {
+            const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
+            if (!confirmPush) return;
+        }
+
+        addCommandToList(command);
+        commandInput.value = commands.slice(1).join('\n'); // 移除已執行的命令
+
+        saveCommands();
+        commandExists = true;
+        updateRunAllButtonStatus();
+        showLoading()
+
+        try {
+            const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
+            if (result.conflict) {
+                alert('Conflicts detected:\n' + result.conflicts);
+            } else {
+                if (result.message) {
+                    alert(result.message);
+                }
+                if (result.gitInfo) {
+                    console.log('Update git info', result.gitInfo);
+                    drawGitGraph(result.gitInfo, 'preview-graph', tempFolderPath);
+                }
+            }
+            hideLoading()
+        } catch (error) {
+            hideLoading()
+            console.error('Error executing git command:', error);
+            showAlert('Error executing git command: ' + error.message);
+        }
+    }
     commandInput.addEventListener('keydown', async (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            const commands = commandInput.value.trim().split('\n').filter(cmd => cmd.startsWith('git '));
-
-            if (commands.length === 0) {
-                alert('Please enter a valid git command.');
-                commandInput.focus();
-                return;
-            }
-
-            if (!folderSelected) {
-                alert('Please select a folder first.');
-                commandInput.focus();
-                return;
-            }
-
-            const command = commands[0]; // 取出第一個命令
-            // if (command.startsWith('git ')) {
-
-            if (command.startsWith('git push')) {
-                const confirmPush = confirm('Git-Viewer will only check for potential conflicts. To actually push, use the [Run All] button on formal files.')
-                if (!confirmPush) return;
-            }
-
-            addCommandToList(command);
-            commandInput.value = commands.slice(1).join('\n'); // 移除已執行的命令
-
-            saveCommands();
-            commandExists = true;
-            updateRunAllButtonStatus();
-
-            try {
-                const result = await window.electron.executeGitCommand({ command, folderPath: tempFolderPath, isPushCheckOnly: true });
-                if (result.conflict) {
-                    alert('Conflicts detected:\n' + result.conflicts);
-                } else {
-                    if (result.message) {
-                        alert(result.message);
-                    }
-                    if (result.gitInfo) {
-                        console.log('Update git info', result.gitInfo);
-                        drawGitGraph(result.gitInfo, 'preview-graph', tempFolderPath);
-                    }
-                }
-            } catch (error) {
-                console.error('Error executing git command:', error);
-                alert('Error executing git command: ' + error.message);
-            }
+            await handleCommandExecution();
         } else if (event.key === 'Enter' && event.shiftKey) {
             // 允許 Shift + Enter 插入新行
         }
     });
+
+    referenceInputButton.addEventListener('click', async () => {
+        await handleCommandExecution();
+    });
+    // } else if (event.key === 'Enter' && event.shiftKey) {
+    //     // 允許 Shift + Enter 插入新行
+    // }
     // 接收来自 main.js 的 use-command 消息
     window.electron.on('use-command', (event, command) => {
         commandInput.value = command;
@@ -129,11 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return li.childNodes[0].textContent.trim();
             });
 
-            const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath));
+            const eventsTriggered = new Set(await window.electron.checkWorkflows(commands, currentFolderPath) || []);
 
             const userId = localStorage.getItem('userId');
             const rootDir = await window.electron.findGitRoot(currentFolderPath);
-            const yamlFiles = await window.electron.findYmlFiles(rootDir);
+
+            let yamlFiles = [];
+            if (rootDir !== null) {
+                yamlFiles = await window.electron.findYmlFiles(rootDir);
+            };
 
             if (yamlFiles.length > 0 && !userId) {
                 const loginConfirmed = confirm('You need to log in to trigger yml files for automation. Do you want to log in now?');
@@ -173,13 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     result: result.message || result.conflicts || 'Success'
                 });
 
-                if (command.startsWith('git')) {
+                if (command.startsWith('git') && command !== 'git push origin +HEAD') {
                     const [_, mainCommand] = command.split(' ');
                     const eventTriggered = mainCommand.toLowerCase();
                     if (eventsTriggered.has(eventTriggered)) {
                         //未登入無法執行workflow
                         if (!userId) {
-                            alert('You need to log in to execute the workflows.');
+                            showAlert('You need to log in to execute the workflows.');
                             return;
                         }
 
@@ -188,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(workflowResults)) {
                             const failureSteps = workflowResults.filter(result => result.status === 'failure');
                             if (failureSteps.length > 0) {
-                                alert(`Step "${failureSteps[0].step}" failed: ${failureSteps[0].error}`);
+                                showAlert(`Step "${failureSteps[0].step}" failed: ${failureSteps[0].error}`);
                                 return;
                             }
                         } else if (workflowResults.message) {
-                            alert(workflowResults.message);
+                            showAlert(workflowResults.message);
                         }
                         if (workflowResults.workflowId) {
                             startPolling(workflowResults.workflowId);
@@ -206,11 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 commands,
                 results: executionResults
             });
-            
-            alert('All commands executed successfully!');
+
+            showAlert('All commands executed successfully!');
         } catch (error) {
             console.error('Error executing commands:', error);
-            alert('Error executing commands: ' + error.message);
+            showAlert('Error executing commands: ' + error.message);
         } finally {
             updatesEnabled = true;
             updateRunAllButtonStatus();

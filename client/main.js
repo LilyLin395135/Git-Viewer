@@ -5,13 +5,14 @@ import axios from 'axios';
 import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
+import dotenv from 'dotenv';
+import pkg from 'electron-updater';
 import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { initGit, getGitInfo, getCommitMessage } from './utils/gitInformation.js'
 import { formatStatus } from './utils/gitCommands.js';
-// import { createGitInfo, deleteGitInfo } from './database.js';
-import dotenv from 'dotenv';
 import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
-import pkg from 'electron-updater';
+import { createAlertWindow } from './utils/alertWindow.js';
+
 const { autoUpdater } = pkg;
 
 dotenv.config();
@@ -39,7 +40,7 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false
     },
-    icon: path.join(appDirectory, 'assets', 'logo_GV_1.png') //應用程式logo
+    icon: path.join(appDirectory, 'build', 'icon.png') //應用程式logo
   });
   mainWindow.loadFile(path.join(appDirectory, 'dist/git-viewer.html'));
 
@@ -65,6 +66,22 @@ function createWindow() {
     } else {
       createCommandRecordWindow();
     }
+  });
+
+  // ipcMain.handle('show-alert', async (event, message) => {
+  //   const { response } = await dialog.showMessageBox(mainWindow, {
+  //     type: 'info',
+  //     buttons: ['OK'],
+  //     defaultId: 0,
+  //     title: 'Git Viewer',
+  //     // message: message,
+  //     detail: message, // allows selection and copy
+  //     noLink: true
+  //   });
+  //   return response === 0;
+  // });
+  ipcMain.handle('show-custom-alert', (event, message) => {
+    createAlertWindow(message);
   });
 }
 
@@ -263,7 +280,6 @@ ipcMain.handle('prepare-temp-git-folder', async (event, sourceFolderPath) => {
 
 ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPushCheckOnly = true }) => {
   try {
-    const git = simpleGit(folderPath);
     let [mainCommand, ...args] = command.split(' ');
 
     // Remove 'git' from the command if it's included
@@ -271,12 +287,29 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
       mainCommand = args.shift();
     }
 
+    const git = simpleGit(folderPath);
+    let resultMessage = '';
+
     console.log(`mainCommand:${mainCommand}`);
     console.log(`args:${args}`);
 
-    let resultMessage = '';
 
     switch (mainCommand) {
+      case 'clone':
+        const repoUrl = args[0];
+
+        if (fs.existsSync(path.join(folderPath, '.git'))) {
+          throw new Error('The folder is already a git repository. Please choose another folder.');
+        }
+
+        if (fs.existsSync(folderPath) && fs.readdirSync(folderPath).length > 0) {
+          throw new Error('The folder is not empty. Please choose another folder.');
+        }
+
+        await git.clone(repoUrl, folderPath);
+        resultMessage = `Repository successfully cloned from ${repoUrl} to ${folderPath}`;
+        break;
+
       case 'pull':
         const remoteName = args[0] || 'origin';
         const branchName = args[1] || 'main';
@@ -322,9 +355,9 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         break;
 
       case 'reset':
-        const resetMode = args[0] || 'mixed'; // 默认使用混合模式
+        const resetMode = args[0] || '--mixed';
         const resetCommit = args[1] || 'HEAD';
-        await git.reset([`--${resetMode}`, resetCommit]);
+        await git.reset([resetMode, resetCommit]);
         const postResetStatus = await git.status();
         const unstagedChanges = postResetStatus.files
           .filter(file => file.working_dir !== ' ')
@@ -378,7 +411,8 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
           const branchName = args[0];
           const currentBranch = (await (git.status())).current;
           if (branchName === currentBranch) {
-            resultMessage = `Already on '${branchName}`;
+            resultMessage = `Already on ${branchName}`;
+            break;
           }
 
           const worktreeList = await git.raw(['worktree', 'list']);
@@ -470,34 +504,30 @@ ipcMain.handle('execute-git-command', async (event, { command, folderPath, isPus
         resultMessage = diffResult;
         break;
 
-      case 'reset':
-        if (args[0] === '--soft' && args[1].startsWith('HEAD~')) {
-          await git.raw(['reset', '--soft', args[1]]);
-          resultMessage = 'Reset the last commit.';
-        } else if (args[0] === 'origin' && args[1] === '+HEAD') {
-          await git.raw(['push', 'origin', '+HEAD']);
-          resultMessage = 'Forced pushed the HEAD.';
-        } else {
-          await git.reset(args);
-          resultMessage = 'Reset the repository.';
-        }
-        break;
+      // case 'reset':
+      //   if (args[0] === '--soft' && args[1].startsWith('HEAD~')) {
+      //     await git.raw(['reset', '--soft', args[1]]);
+      //     resultMessage = 'Reset the last commit.';
+      //   } else if (args[0] === 'origin' && args[1] === '+HEAD') {
+      //     await git.raw(['push', 'origin', '+HEAD']);
+      //     resultMessage = 'Forced pushed the HEAD.';
+      //   } else {
+      //     await git.reset(args);
+      //     resultMessage = 'Reset the repository.';
+      //   }
+      //   break;
 
       default:
         const rawResult = await git.raw([mainCommand, ...args]);
         resultMessage = typeof rawResult === 'string' ? rawResult : JSON.stringify(rawResult, null, 2);
     }
 
+    const isRepo = await git.checkIsRepo();
+    if (!isRepo) {
+      throw new Error('No git repository found in the given path or its parent directories.');
+    }
+
     const gitInfo = await getGitInfo(folderPath);
-    // await new Promise((resolve, reject) => {
-    //   createGitInfo(gitInfo, (err, id) => {
-    //     if (err) {
-    //       reject(err);
-    //     } else {
-    //       resolve(id);
-    //     }
-    //   });
-    // });
     return { message: resultMessage, gitInfo };
   } catch (error) {
     console.error('Error executing git command:', error);

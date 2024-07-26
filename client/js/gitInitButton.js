@@ -45,11 +45,11 @@ gitInitButton.addEventListener('click', async () => {
       gitInitButton.setAttribute('disabled', true);
       clearGraph('formal-graph');
       clearGraph('preview-graph');
-      alert('Git Init Successfully.');
+      showAlert('Git Init Successfully.');
     }
   } catch (error) {
     console.error('Error initializing git:', error);
-    alert('Error Initializing git: ' + error.message);
+    showAlert('Error Initializing git: ' + error.message);
   }
 });
 

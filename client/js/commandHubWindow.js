@@ -28,7 +28,7 @@ document.getElementById('submit-command-button').addEventListener('click', async
             console.error('Failed to save command:', error);
         }
     } else {
-        alert('Please provide a scenario and at least one command.');
+        showAlert('Please provide a scenario and at least one command.');
     }
 });
 
@@ -63,20 +63,18 @@ async function loadCommands() {
             document.querySelector('.command-actions').style.display = 'flex';
             commandList.innerHTML = `
                 <tr class="table-header">
-                    <th>ID</th>
+                    <th>No.</th>
                     <th>Scenario</th>
                     <th>Commands</th>
-                    <th>Usage Count</th>
                     <th>Menu</th>
                 </tr>
-                ${commands.map(command => `
+                ${commands.map((command, index) => `
                     <tr data-command-id="${command.id}">
-                        <td>${command.id}</td>
+                        <td>${index + 1}</td>
                         <td>${command.scenario}</td>
                         <td class="command-buttons">
                             ${command.commands.map(cmd => `<button class="command-button">${cmd}</button>`).join('')}
                         </td>
-                        <td class="center-text">${command.usage_count}</td>
                         <td class="menu-buttons">
                             <button class="use-button">Use</button>
                             <button class="edit-button">Edit</button>
@@ -111,7 +109,7 @@ document.getElementById('command-list').addEventListener('click', async (event) 
         document.getElementById('new-command-form').classList.remove('hidden');
         document.getElementById('command-list-container').style.display = 'none';
     } else if (target.classList.contains('delete-button')) {
-        // 处理删除指令逻辑
+        // 處理刪除指令邏輯
         try {
             await deleteCommand(userId, commandId);
             await loadCommands(); // 重新加载指令列表
@@ -119,7 +117,7 @@ document.getElementById('command-list').addEventListener('click', async (event) 
             console.error('Failed to delete command:', error);
         }
     } else if (target.classList.contains('use-button')) {
-        // 处理使用指令逻辑
+        // 處理使用指令邏輯
         try {
             const { commands } = await fetchCommands(userId);
             const command = commands.find(cmd => cmd.id == commandId);
@@ -130,10 +128,10 @@ document.getElementById('command-list').addEventListener('click', async (event) 
             console.error('Failed to use command:', error);
         }
     } else if (target.classList.contains('command-button')) {
-        // 处理复制指令逻辑
+        // 處理複製指令邏輯
         const command = target.innerText;
         navigator.clipboard.writeText(command).then(() => {
-            alert('Command copied to clipboard');
+            showAlert('Command copied to clipboard');
         }).catch(err => {
             console.error('Failed to copy command:', err);
         });

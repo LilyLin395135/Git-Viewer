@@ -3,12 +3,16 @@ const URL = 'https://gitviewer.lilylinspace.com';
 let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
+const showAlert = async (message) => {
+    await window.electron.showAlert(message);
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
     userId = localStorage.getItem('userId');
     // userId = 1;
     if (!userId) {
-        alert('You need to log in first.');
+        showAlert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);
         window.location.href = `login.html?redirect=${redirectUrl}`;
         return;
@@ -230,7 +234,7 @@ function updateLogContent(workflow) {
             </div>
         </div>
         <div role="region" class="workflow-log Box-row terminal-log js-updatable-content js-socket-channel actions-workflow-stats actions-fullwidth-module color-bg-default Box color-shadow-small mb-3 pb-3 px-3 border border-top-0 border-md-top rounded">
-            <pre>${workflow.log}</pre>
+            <pre>${highlightLogs(workflow.log)}</pre>
         </div>
     `;
 }
@@ -254,8 +258,16 @@ function daysAgo(dateString) {
 }
 
 function formatDate(dateString) {
+    // return date = new Date(dateString).toLocalString();
     const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
 function calculateDuration(startTime, endTime) {
@@ -264,4 +276,17 @@ function calculateDuration(startTime, endTime) {
     const end = new Date(endTime);
     const diff = end - start;
     return `${Math.floor(diff / 1000)} seconds`;
+}
+
+function highlightLogs(log) {
+    const lines = log.split('\n');
+    return lines.map(line => {
+        if (line.includes('WARNING')) {
+            return `<span class="warning">${line}</span>`;
+        } else if (line.includes('Error')) {
+            return `<span class="error">${line}</span>`;
+        } else {
+            return line;
+        }
+    }).join('\n');
 }

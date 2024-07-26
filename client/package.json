@@ -1,6 +1,6 @@
 {
   "name": "git-viewer",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "main.js",
   "type": "module",
   "scripts": {
@@ -34,6 +34,9 @@
     "electron": "^31.0.1",
     "electron-builder": "^23.6.0",
     "electron-debug": "^4.0.0",
+    "jest": "^29.7.0",
+    "jest-playwright-preset": "^4.0.0",
+    "playwright": "^1.45.2",
     "vite-plugin-static-copy": "^1.0.5"
   },
   "build": {
@@ -54,6 +57,8 @@
       "dist/register.html",
       "dist/settings.html",
       "dist/workflow.html",
+      "dist/commandHub.html",
+      "dist/commandRecord.html",
       "dist/assets/**/*",
       "dist/js/**/*",
       "dist/stylesheet/**/*",
@@ -73,13 +78,24 @@
       }
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GitViewer"
     },
     "mac": {
-      "target": "dmg"
+      "target": ["dmg", "pkg"],
+      "icon": "build/icon.icns"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "build/icon.png"
     }
   }
 }

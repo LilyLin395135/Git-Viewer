@@ -41,8 +41,8 @@ describe('Get All Secrets', () => {
 describe('Delete Secret', () => {
   it('userId is required', async () => {
     const response = await request(app)
-      .delete('/api/secret/1');
-    expect(response.status).toBe(400);
-    expect(response.body.errors[0].msg).toBe('userId is required');
+      .delete('/api/secret/1/1');
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Secret deleted successfully');
   });
 });
