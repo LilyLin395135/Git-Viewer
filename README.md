@@ -2,7 +2,7 @@
 ![Git 圖形化預演 & 自動化部署](https://github.com/user-attachments/assets/9972385d-63fe-4ed9-8ba5-e64ab9507482)
 
 # Git Viewer designed to enhance the Git experience for developers
-> **Git Viewer 透過模擬 git 指令結果，再實際執行，減少錯誤率並提高 workflow 效率**
+> **Git Viewer 透過模擬 git 指令結果，確認符合預期再實際執行 git 指令，減少錯誤率並提高 workflow 效率**
 
 # Introduction Video
 [![Side Project【Git Viewer】_Back End_林虹伶_2024](https://img.youtube.com/vi/1v4r5_5uo8s/0.jpg)](https://youtu.be/1v4r5_5uo8s)
@@ -23,7 +23,7 @@
 - [Workflow 流程圖](#workflow-流程圖)
 
 ## 試用步驟
-## 1. github release 下載 Git Viewer 桌面應用程式
+## 1. GitHub Release 下載 Git Viewer 桌面應用程式
 * [Download Link - Git Viewer](https://github.com/LilyLin395135/Git-Viewer/releases/)
   
 * 點擊 Latest 到 Git Viewer 最新版本的頁面
@@ -41,9 +41,11 @@
 * 下載完成自動開啟應用程式
   ![Git Viewer](https://github.com/user-attachments/assets/6cee70ec-887f-448d-a431-f58c39333ecd)
 
-* 點擊 Workflow 頁籤，輸入登入帳號 & 密碼
+* 點擊 Workflow 頁籤，導到登入畫面。
+* 【測試帳號密碼】
   * 帳號：user@gmail.com
   * 密碼：gitViewer
+  * 應用程式已設定自動帶入測試帳號的帳號密碼，可以直接按登入。
   ![log in](https://github.com/user-attachments/assets/df7595d0-a7e1-4c3f-9999-9005d1e2f63f)
 
 * 可以看到該帳號的專案 workflow 記錄和執行的 log
@@ -55,7 +57,7 @@
   ![fork](https://github.com/user-attachments/assets/6aee8a15-9e6f-4eb4-b62e-e27a39c4f6a9)
 
 * Create fork ( Please copy all the branches )
-  ![fork all the branch](https://github.com/user-attachments/assets/ce8132b2-6b32-4b74-ab39-46faa2260c01)
+  ![fork all the branch](https://github.com/user-attachments/assets/a45abb50-8a25-4e13-8716-1592e1aa6daa)
 
 * 在您的 GitHub 帳號 Repositories 中，找到剛剛 fork 的 repository，點擊進入 repository
   ![image](https://github.com/user-attachments/assets/90f2e1e3-db4c-4e9b-a94d-d8e11f4b6eb3)
@@ -81,6 +83,7 @@ git fork 完接著【git clone】
   ![execute git clone](https://github.com/user-attachments/assets/3eb4dbcc-692e-4e63-8084-5a3980e04d1e)
 
 * 接著按 Run All 按鈕實際執行
+  * 若 Run All 時出現錯誤訊息可能是您目前的資料夾已經被父層中的 .git 管理，須請您回到 git clone 一開始的步驟，Open Folder 選擇外層、沒有 .git 管理的地方再建立一次資料夾並選取該資料夾執行 git clone。
 * 在實際的專案資料夾執行 git，並顯示 git 實際預覽圖
   ![Run All git clone](https://github.com/user-attachments/assets/62d31d6d-6c49-4357-92b8-7e244059d47c)
 
@@ -111,9 +114,11 @@ git fork 完接著【git clone】
 
 ![My Commands_add-commit-push](https://github.com/user-attachments/assets/fe5465de-39de-4778-9bc5-392a93ea6f64)
 * 確認預覽沒問題，可以 Run All 按鈕實際執行在專案上。
+* 若執行 Run All 會因為實際執行 git push 而有如下方將說明的觸發執行 workflow 效果 [4. 用測試專案執行 workflow](#4-用測試專案執行-workflow)。跟著提示框會被導到 workflow 頁面看執行情況。
   
 ### 情境二、reset one commit to github
 目標：讓 GitHub 與本地都撤銷目前的 commit，讓版本回退一個 commit
+* 到 Git Viewer 首頁
 * 開啟指令集 Customized My Commands
 * 選擇 Scenario: reset one commit to github
   ```
@@ -123,7 +128,7 @@ git fork 完接著【git clone】
   ```
 * 按 Use 按鈕，將指令一次放入 try command
 * 每按一次 enter 會**模擬**執行一個 git 指令
-* 確認預覽沒問題，可以 Run All 按鈕實際執行在專案上
+* 確認預覽沒問題，可以 Run All 按鈕實際執行在專案上。
 
 ## 4. 用測試專案執行 workflow 
 檔案內已有三種情境的 yml 
@@ -173,11 +178,12 @@ git fork 完接著【git clone】
 ![image](https://github.com/user-attachments/assets/7717fdc6-0c1a-42f9-a2f9-66df21af0a7e)
 
 ### 情境三、自動化部署到 EC2
-* 示範檔案：deploy_to_ec2.yml，已在下載的測試專案檔案中，可以用 Visual Studio Code 開啟看 yaml 檔案內容
-* 在 Settings 設定 EC2 的 secrets，需對應 yaml 檔案內的帶入變數名稱
-* 在指令集 Use 使用 Scenario → on push main trigger workflow，Enter 模擬執行，Run All 實際執行
-* 流程如影片實際操作示範
-* [![Side Project【Git Viewer】_Back End_林虹伶_2024](https://img.youtube.com/vi/1v4r5_5uo8s/0.jpg)](https://youtu.be/1v4r5_5uo8s)
+* 示範檔案：deploy_to_ec2.yml，已在下載的測試專案檔案中，可以用 Visual Studio Code 開啟看 yaml 檔案內容 (會在 main 分支 git push 時觸發部署到 EC2 )
+* 在 Settings 設定 EC2 的 secrets，需對應 yaml 檔案內的帶入變數名稱，目前是已設定一台 EC2 的 secrets
+* 在指令集 Use 使用 Scenario → on push main trigger workflow，Enter 模擬執行，再 Run All 實際執行
+* 流程如影片實際操作示範 ( 影片從按「Run All」按鈕之前帶大家確認資料和檔案，以及實際執行後的效果 )
+* [測試的 EC2](http://44.206.195.98/) 每日更新時間是中午 12:00 和晚上 21:00，會更新成頁面只有 Hello World 的狀態。如果打開該網址是已經部署好的狀態，就要再等到上述兩個時間後再測試部署功能。謝謝
+* [![Side Project【Git Viewer】_Back End_林虹伶_2024](https://img.youtube.com/vi/1v4r5_5uo8s/0.jpg)](https://youtu.be/1v4r5_5uo8s?si=zLI9qJzkhNZL_gEc&t=62)
 
 ## 其他功能介紹
 * 模擬到一半想要回到模擬之前的狀態，可以使用 Reset Graph 按鈕，會讓模擬的資料變與實際專案的資料狀態一樣
