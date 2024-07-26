@@ -5,13 +5,14 @@ import axios from 'axios';
 import simpleGit from 'simple-git';
 import fse from 'fs-extra';
 import ignore from 'ignore';
+import dotenv from 'dotenv';
+import pkg from 'electron-updater';
 import { checkWorkflows, triggerWorkflows } from './utils/gitActionRunner.js';
 import { initGit, getGitInfo, getCommitMessage } from './utils/gitInformation.js'
 import { formatStatus } from './utils/gitCommands.js';
-// import { createGitInfo, deleteGitInfo } from './database.js';
-import dotenv from 'dotenv';
 import { findGitRoot, findYmlFiles } from './utils/gitActionRunner.js';
-import pkg from 'electron-updater';
+import { createAlertWindow } from './utils/alertWindow.js';
+
 const { autoUpdater } = pkg;
 
 dotenv.config();
@@ -65,6 +66,22 @@ function createWindow() {
     } else {
       createCommandRecordWindow();
     }
+  });
+
+  // ipcMain.handle('show-alert', async (event, message) => {
+  //   const { response } = await dialog.showMessageBox(mainWindow, {
+  //     type: 'info',
+  //     buttons: ['OK'],
+  //     defaultId: 0,
+  //     title: 'Git Viewer',
+  //     // message: message,
+  //     detail: message, // allows selection and copy
+  //     noLink: true
+  //   });
+  //   return response === 0;
+  // });
+  ipcMain.handle('show-custom-alert', (event, message) => {
+    createAlertWindow(message);
   });
 }
 

@@ -28,7 +28,7 @@ document.getElementById('submit-command-button').addEventListener('click', async
             console.error('Failed to save command:', error);
         }
     } else {
-        alert('Please provide a scenario and at least one command.');
+        showAlert('Please provide a scenario and at least one command.');
     }
 });
 
@@ -131,7 +131,7 @@ document.getElementById('command-list').addEventListener('click', async (event) 
         // 處理複製指令邏輯
         const command = target.innerText;
         navigator.clipboard.writeText(command).then(() => {
-            alert('Command copied to clipboard');
+            showAlert('Command copied to clipboard');
         }).catch(err => {
             console.error('Failed to copy command:', err);
         });

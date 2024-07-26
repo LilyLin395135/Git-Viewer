@@ -8,6 +8,10 @@ const URL = 'https://gitviewer.lilylinspace.com';
 let isPushCheckOnly = true;
 let commandExists = commandList.children.length > 0;
 
+// const showAlert = async (message) => {
+//     await window.electron.showAlert(message);
+// };
+
 const updateRunAllButtonStatus = () => {
     if (commandList.children.length > 0) {
         runAllButton.removeAttribute('disabled');
@@ -69,13 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const commands = commandInput.value.trim().split('\n').filter(cmd => cmd.startsWith('git '));
 
         if (commands.length === 0) {
-            alert('Please enter a valid git command.');
+            showAlert('Please enter a valid git command.');
             commandInput.focus();
             return;
         }
 
         if (!folderSelected) {
-            alert('Please select a folder first.');
+            showAlert('Please select a folder first.');
             commandInput.focus();
             return;
         }
@@ -112,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             hideLoading()
             console.error('Error executing git command:', error);
-            alert('Error executing git command: ' + error.message);
+            showAlert('Error executing git command: ' + error.message);
         }
     }
     commandInput.addEventListener('keydown', async (event) => {
@@ -199,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (eventsTriggered.has(eventTriggered)) {
                         //未登入無法執行workflow
                         if (!userId) {
-                            alert('You need to log in to execute the workflows.');
+                            showAlert('You need to log in to execute the workflows.');
                             return;
                         }
 
@@ -208,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(workflowResults)) {
                             const failureSteps = workflowResults.filter(result => result.status === 'failure');
                             if (failureSteps.length > 0) {
-                                alert(`Step "${failureSteps[0].step}" failed: ${failureSteps[0].error}`);
+                                showAlert(`Step "${failureSteps[0].step}" failed: ${failureSteps[0].error}`);
                                 return;
                             }
                         } else if (workflowResults.message) {
-                            alert(workflowResults.message);
+                            showAlert(workflowResults.message);
                         }
                         if (workflowResults.workflowId) {
                             startPolling(workflowResults.workflowId);
@@ -227,10 +231,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 results: executionResults
             });
 
-            alert('All commands executed successfully!');
+            showAlert('All commands executed successfully!');
         } catch (error) {
             console.error('Error executing commands:', error);
-            alert('Error executing commands: ' + error.message);
+            showAlert('Error executing commands: ' + error.message);
         } finally {
             updatesEnabled = true;
             updateRunAllButtonStatus();

@@ -3,12 +3,16 @@ const URL = 'https://gitviewer.lilylinspace.com';
 let lastActiveProjectId = null;  // 記住上次展開的project folder
 let lastActiveWorkflowName = null; // 記住上次選擇的workflow name
 
+const showAlert = async (message) => {
+    await window.electron.showAlert(message);
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     //跳轉登入頁
     userId = localStorage.getItem('userId');
     // userId = 1;
     if (!userId) {
-        alert('You need to log in first.');
+        showAlert('You need to log in first.');
         const redirectUrl = encodeURIComponent(window.location.href);
         window.location.href = `login.html?redirect=${redirectUrl}`;
         return;

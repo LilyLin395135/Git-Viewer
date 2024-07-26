@@ -44,10 +44,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 try {
                     await createCommand(userId, commandData);
-                    alert('Add to my commands successfully!');
+                    showAlert('Add to my commands successfully!');
                 } catch (error) {
                     console.error('Failed to add command:', error);
-                    alert('Failed to add command');
+                    showAlert('Failed to add command');
                 }
             });
         });

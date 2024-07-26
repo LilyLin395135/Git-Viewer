@@ -3,6 +3,10 @@ const commandRecordURL = 'https://gitviewer.lilylinspace.com/api/commandRecords'
 const userId = localStorage.getItem('userId'); // 從 localStorage 獲取用戶ID
 // const userId = 1;
 
+const showAlert = async (message) => {
+    await window.electron.showAlert(message);
+};
+
 // 指令集 API
 async function fetchCommands(userId) {
     const response = await fetch(`${commandHubURL}/user/${userId}/commands`);

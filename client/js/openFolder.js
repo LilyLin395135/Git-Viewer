@@ -32,13 +32,13 @@ async function handleFolderSelection() {
     }
   } catch (error) {
     console.error('Error opening folder:', error);
-    alert('Error opening folder: ' + error.message);
+    showAlert('Error opening folder: ' + error.message);
   }
 }
 
 document.getElementById('reset-graph').addEventListener('click', async () => {
   if (!currentFolderPath) {
-    alert('Please select a folder first.');
+    showAlert('Please select a folder first.');
     return;
   }
   showLoading();
@@ -54,7 +54,7 @@ async function processFolderInfo(folderPath, gitExists) {
   currentFolderPath = folderPath;
   tempFolderPath = await window.electron.prepareTempGitFolder(currentFolderPath);
   if (tempFolderPath.error) {
-    alert(tempFolderPath.error);
+    showAlert(tempFolderPath.error);
     return;
   }
 
@@ -72,14 +72,14 @@ async function processFolderInfo(folderPath, gitExists) {
 
   gitInfo = await window.electron.getGitInfo(currentFolderPath);
   if (gitInfo.error) {
-    alert(gitInfo.error);
+    showAlert(gitInfo.error);
     return;
   }
 
   gitInfoTemp = await window.electron.getGitInfo(tempFolderPath);
   console.log(`gitInfo:${gitInfo}`);
   if (gitInfoTemp.error) {
-    alert(gitInfoTemp.error);
+    showAlert(gitInfoTemp.error);
     return;
   }
 
