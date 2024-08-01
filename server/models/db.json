@@ -1,5 +1,0 @@
-{
-    "HOST_DNS": "ec2-54-227-78-56.compute-1.amazonaws.com",
-    "EC2_USERNAME": "ubuntu",
-    "EC2_SSH_KEY_PATH": "~/lilyAWSkeypair.pem"
-}
